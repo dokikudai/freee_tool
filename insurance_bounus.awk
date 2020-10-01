@@ -4,13 +4,19 @@ BEGIN {
   HEALTH_INSURANCE_PERCENTAGE_ge40  = "健康保険料率（40歳以上）"
   WELFARE_PENSION_PERCENTAGE        = "厚生年金保険料率"
   CHILD_CARE_PERCENTAGE             = "子ども・子育て拠出金率"
-  
+
   MAX_MONTH_BOUNUS_OR_CHILD_MOUNT   = 1500000
 }
 
 
 # 保険料率マスタ作成
 #
+FILENAME == "social_insurances/h30ippan4.csv" && FNR == 11 {
+  set_lib_si_bounus(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/h31ippan3.csv" && FNR == 11 {
+  set_lib_si_bounus(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
+}
 FILENAME == "social_insurances/h310402.csv" && FNR == 11 {
   cmn_debug_log("social_insurances/h310402.csv")
   set_lib_si_bounus(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
@@ -39,6 +45,14 @@ function v(value) {
 
 # 保険料率マスタ作成（子ども・子育て拠出金率追加）
 #
+FILENAME == "social_insurances/h30ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h30ippan4.csv : " $1)
+  set_lib_si_child_bounus(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/h31ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h31ippan3.csv : " $1)
+  set_lib_si_child_bounus(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
+}
 FILENAME == "social_insurances/h310402.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child_bounus(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
@@ -51,7 +65,7 @@ FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育�
   cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child_bounus(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
-function set_lib_si_child_bounus(start_date, end_date,    i) {
+function set_lib_si_child_bounus(start_date, end_date) {
   lib_si_bounus[start_date][end_date][CHILD_CARE_PERCENTAGE] = v($1)
 }
 

@@ -16,7 +16,7 @@ ls -1 ./${input_payroll_csv} \
         -f cmn.awk \
         -f cmn_insra.awk \
         -f insurance.awk \
-        social_insurances/*.tmp \
+        social_insurances/* \
         <(encode_payroll ${csv_list}) \
         > ./${output_import_csv_dir}/${csv_file}_${i}.csv
 

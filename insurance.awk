@@ -7,6 +7,7 @@ BEGIN {
   HEALTH_INSURANCE_HALF_ge40 = "健康保険料折半（40歳以上）"
   WELFARE_PENSION_ALL        = "厚生年金保険料全額"
   WELFARE_PENSION_HALF       = "厚生年金保険料折半"
+  CHILD_CARE_PERCENTAGE      = "子ども・子育て拠出金率"
 }
 
 FILENAME ~ /.*.tmp/ {
@@ -16,6 +17,12 @@ FILENAME ~ /.*.tmp/ {
   if ($2 == "") {
     $2 = 999999999999
   }
+}
+FILENAME == "social_insurances/h30ippan4.csv.tmp" {
+  set_lib_si(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/h31ippan3.csv.tmp" {
+  set_lib_si(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
 }
 FILENAME == "social_insurances/h310402.csv.tmp" {
   set_lib_si(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
@@ -34,6 +41,38 @@ function set_lib_si(start_date, end_date) {
   lib_si[start_date][end_date][$1][$2][WELFARE_PENSION_ALL]        =$7
   lib_si[start_date][end_date][$1][$2][WELFARE_PENSION_HALF]       =$8
 }
+
+# 保険料率マスタ作成（子ども・子育て拠出金率追加）
+#
+FILENAME == "social_insurances/h30ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h30ippan4.csv : " $1)
+  set_lib_si_child(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/h31ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h31ippan3.csv : " $1)
+  set_lib_si_child(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
+}
+FILENAME == "social_insurances/h310402.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r2ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2020 03 01 00 00 00"), mktime("2020 04 01 00 00 00"))
+}
+FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+}
+function set_lib_si_child(start_date, end_date) {
+  cmn_debug_log("#set_lib_si_child, v($1)=" v($1))
+  lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] = v($1)
+}
+function v(value) {
+  gsub(/[^0-9\.]*/, "", value)
+  return value
+}
+
 ARGIND == ARGC - 1 && $5 == "給与" {
   cmn_debug_log("$5 == \"給与\"")
   set()
@@ -64,7 +103,6 @@ END {
 function set(    insmap) {
   entry_date = cmn_to_mktime($9)
   use_lib_si(entry_date, insmap)
-  insmap["子ども・子育て拠出金（会社）"]["法定福利費"]           = get_plan4(entry_date)
 
   for (remarks in insmap) {
     for (account in insmap[remarks]) {
@@ -104,6 +142,7 @@ function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
         insmap["健康保険料（会社）"]["法定福利費"]     = get_insur(lib_si[start_date][end_date], age, "owner")
         insmap["厚生年金保険料（従業員）"]["預り金"]   = get_plan3(lib_si[start_date][end_date], age, "employee")
         insmap["厚生年金保険料（会社）"]["法定福利費"] = get_plan3(lib_si[start_date][end_date], age, "owner")
+        insmap["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(start_date, end_date)
         if (age > 39) {
           cmn_debug_log("介護保険料条件内age : " age " " cmn_emp_name())
           insmap["介護保険料（従業員）"]["預り金"]     = get_kaigo_ro(lib_si[start_date][end_date], age)
@@ -135,15 +174,9 @@ function get_plan3(lib_si, age, stat) {
   return mount
 }
 
-function get_plan4(entry_date) {
-  if (entry_date >= mktime("2020 04 01 00 00 00")) {
-    cmn_debug_log($77)
-    return int($77 * 0.0036)
-  }
-  if (entry_date >= mktime("2020 03 01 00 00 00") && entry_date < mktime("2020 04 01 00 00 00")) {
-    return int($77 * 0.0034)
-  }
-  if (entry_date < mktime("2020 03 01 00 00 00")) {
-    return int($77 * 0.0034)
-  }
+function calc_child_care(start_date, end_date,    i) {
+  cmn_debug_log("#calc_child_care,  $77=" $77)
+  i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $77
+  cmn_debug_log("#calc_child_care, lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE]=" lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE])
+  return int(cmn_bigdecimal(i))
 }
