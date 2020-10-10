@@ -88,13 +88,15 @@ END {
     if (cmn_is_date(day_sal)) {
       continue
     }
-    for (employee in social[day_sal]) {
-      i=0
-      if (!i++) {
-        printf "支出"
-      }
-      for (q in social[day_sal][employee]) {
-        print social[day_sal][employee][q]
+    for (day_settlement in social[day_sal]) {
+      for (employee in social[day_sal][day_settlement]) {
+        i=0
+        if (!i++) {
+          printf "支出"
+        }
+        for (q in social[day_sal][day_settlement][employee]) {
+          print social[day_sal][day_settlement][employee][q]
+        }
       }
     }
   }
@@ -114,7 +116,7 @@ function set(    insmap) {
 function set_social(remarks, value, account) {
   cmn_debug_log("set_social#remarks, value, account : " remarks ", " value ", " account)
   if (value) {
-    social[cmn_entry_strdate()][$2][remarks]=",," cmn_entry_strdate() "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social[cmn_entry_strdate(remarks)][$7][$2][remarks]=",," cmn_entry_strdate(remarks) "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 

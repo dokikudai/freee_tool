@@ -21,7 +21,16 @@ function cmn_to_mktime(strtime,    d1, d2) {
 }
 
 # 計算締日（計上日）をstrftimeする
-function cmn_entry_strdate() {
+function cmn_entry_strdate(remarks,    lib_employee) {
+
+  # リファクタリングしたい
+  lib_employee["健康保険料（従業員）"]
+  lib_employee["厚生年金保険料（従業員）"]
+  lib_employee["介護保険料（従業員）"]
+
+  if (remarks in lib_employee) {
+    return cmn_pay_strdate()
+  }
   return strftime("%Y/%m/%d", cmn_to_mktime($9) " 00 00 00")
 }
 
@@ -41,7 +50,16 @@ function cmn_bounus_entry_date(    d1, d2) {
 }
 
 # ボーナスの計算締日をstrftimeする
-function cmn_bounus_entry_strdate(    d) {
+function cmn_bounus_entry_strdate(remarks,    d) {
+  # リファクタリングしたい
+  lib_employee["健康保険料（従業員）"]
+  lib_employee["厚生年金保険料（従業員）"]
+  lib_employee["介護保険料（従業員）"]
+
+  if (remarks in lib_employee) {
+    return cmn_pay_strdate()
+  }
+
   d = strftime("%Y/%m/%d", cmn_bounus_entry_date())
   cmn_debug_log("cmn#strftime(\"%Y/%m/%d\", cmn_bounus_entry_date()) : " d)
   return d
