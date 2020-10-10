@@ -65,6 +65,21 @@ function cmn_bounus_entry_strdate(remarks,    d) {
   return d
 }
 
+# リファクタリングしたい
+# ボーナスの社会保険料生産日をstrftimeする
+function cmn_bounus_insura_settle_date(    d1, d2, d3) {
+  d1 = strftime("%Y %m %d", cmn_to_mktime($7))
+  cmn_debug_log("cmn#strftime(\"%Y %m 01\", d2) : " d1)
+  d2 = mktime(d1 " 23 59 59") + 1
+  # 1ヶ月以上プラス
+  d2 = d2 + (24*60*60)*32
+  # 月初から1秒引いて月末にする
+  d3 = mktime(strftime("%Y %m 01", d2) " 00 00 00") - 1
+  cmn_debug_log("cmn#mktime(d3 \" 00 00 00\") : " d3)
+  cmn_debug_log("cmn#strftime(\"%Y/%m/%d %H:%M:%S\", d3) : " strftime("%Y/%m/%d %H:%M:%S", d3))
+  return strftime("%Y/%m/%d", d3)
+}
+
 # 介護保険料の計算に必要な年齢を計算
 function cmn_age(    entry_date, from, to) {
   if ($5 == "給与") {

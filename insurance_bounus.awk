@@ -82,18 +82,20 @@ END {
   # HEAD
   print "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
 
-  for (day_sal in social_bounus) {
-    if (cmn_is_date(day_sal)) {
+  for (day_base in social_bounus) {
+    if (cmn_is_date(day_base)) {
       continue
     }
-    for (day_settlement in social_bounus[day_sal]) {
-      for (employee in social_bounus[day_sal][day_settlement]) {
-        i=0
-        if (!i++) {
-          printf "支出"
-        }
-        for (q in social_bounus[day_sal][day_settlement][employee]) {
-          print social_bounus[day_sal][day_settlement][employee][q]
+    for (day_sal in social_bounus[day_base]) {
+      for (day_settlement in social_bounus[day_base][day_sal]) {
+        for (employee in social_bounus[day_base][day_sal][day_settlement]) {
+          i=0
+          if (!i++) {
+            printf "支出"
+          }
+          for (q in social_bounus[day_base][day_sal][day_settlement][employee]) {
+            print social_bounus[day_base][day_sal][day_settlement][employee][q]
+          }
         }
       }
     }
@@ -116,7 +118,7 @@ function calc_bounus(value) {
 
 function set_social_bounus(remarks, value, account) {
   if (value) {
-    social_bounus[cmn_bounus_entry_strdate(remarks)][$7][$2][remarks]=",," cmn_bounus_entry_strdate(remarks) "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social_bounus[cmn_bounus_entry_strdate()][cmn_bounus_entry_strdate(remarks)][cmn_bounus_insura_settle_date()][$2][remarks]=",," cmn_bounus_entry_strdate(remarks) "," cmn_bounus_insura_settle_date() ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 

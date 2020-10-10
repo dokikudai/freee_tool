@@ -84,18 +84,21 @@ END {
   # HEAD
   print "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
 
-  for (day_sal in social) {
-    if (cmn_is_date(day_sal)) {
+  # ひどいループ、リファクタリングしたい
+  for (day_base in social) {
+    if (cmn_is_date(day_base)) {
       continue
     }
-    for (day_settlement in social[day_sal]) {
-      for (employee in social[day_sal][day_settlement]) {
-        i=0
-        if (!i++) {
-          printf "支出"
-        }
-        for (q in social[day_sal][day_settlement][employee]) {
-          print social[day_sal][day_settlement][employee][q]
+    for (day_sal in social[day_base]) {
+      for (day_settlement in social[day_base][day_sal]) {
+        for (employee in social[day_base][day_sal][day_settlement]) {
+          i=0
+          if (!i++) {
+            printf "支出"
+          }
+          for (q in social[day_base][day_sal][day_settlement][employee]) {
+            print social[day_base][day_sal][day_settlement][employee][q]
+          }
         }
       }
     }
@@ -116,7 +119,7 @@ function set(    insmap) {
 function set_social(remarks, value, account) {
   cmn_debug_log("set_social#remarks, value, account : " remarks ", " value ", " account)
   if (value) {
-    social[cmn_entry_strdate(remarks)][$7][$2][remarks]=",," cmn_entry_strdate(remarks) "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social[cmn_entry_strdate()][cmn_entry_strdate(remarks)][$7][$2][remarks]=",," cmn_entry_strdate(remarks) "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
