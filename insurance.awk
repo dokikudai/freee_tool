@@ -7,6 +7,7 @@ BEGIN {
   HEALTH_INSURANCE_HALF_ge40 = "健康保険料折半（40歳以上）"
   WELFARE_PENSION_ALL        = "厚生年金保険料全額"
   WELFARE_PENSION_HALF       = "厚生年金保険料折半"
+  CHILD_CARE_PERCENTAGE      = "子ども・子育て拠出金率"
 }
 
 FILENAME ~ /.*.tmp/ {
@@ -16,6 +17,12 @@ FILENAME ~ /.*.tmp/ {
   if ($2 == "") {
     $2 = 999999999999
   }
+}
+FILENAME == "social_insurances/h30ippan4.csv.tmp" {
+  set_lib_si(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/h31ippan3.csv.tmp" {
+  set_lib_si(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
 }
 FILENAME == "social_insurances/h310402.csv.tmp" {
   set_lib_si(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
@@ -34,10 +41,47 @@ function set_lib_si(start_date, end_date) {
   lib_si[start_date][end_date][$1][$2][WELFARE_PENSION_ALL]        =$7
   lib_si[start_date][end_date][$1][$2][WELFARE_PENSION_HALF]       =$8
 }
+
+# 保険料率マスタ作成（子ども・子育て拠出金率追加）
+#
+FILENAME == "social_insurances/h30ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h30ippan4.csv : " $1)
+  set_lib_si_child(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/h31ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h31ippan3.csv : " $1)
+  set_lib_si_child(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
+}
+FILENAME == "social_insurances/h310402.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r2ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2020 03 01 00 00 00"), mktime("2020 04 01 00 00 00"))
+}
+FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+}
+function set_lib_si_child(start_date, end_date) {
+  cmn_debug_log("#set_lib_si_child, v($1)=" v($1))
+  lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] = v($1)
+}
+function v(value) {
+  gsub(/[^0-9\.]*/, "", value)
+  return value
+}
+
 ARGIND == ARGC - 1 && $5 == "給与" {
   cmn_debug_log("$5 == \"給与\"")
   set()
 }
+
+ARGIND == ARGC - 1 && $5 == "給与" && !year[substr($7, 1, 4)]++ {
+  cmn_holiday_api(substr($7, 1, 4))
+}
+
 END {
   # BOM
   printf "\xEF\xBB\xBF"
@@ -45,17 +89,22 @@ END {
   # HEAD
   print "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
 
-  for (day_sal in social) {
-    if (cmn_is_date(day_sal)) {
+  # ひどいループ、リファクタリングしたい
+  for (day_base in social) {
+    if (cmn_is_date(day_base)) {
       continue
     }
-    for (employee in social[day_sal]) {
-      i=0
-      if (!i++) {
-        printf "支出"
-      }
-      for (q in social[day_sal][employee]) {
-        print social[day_sal][employee][q]
+    for (day_sal in social[day_base]) {
+      for (day_settlement in social[day_base][day_sal]) {
+        for (employee in social[day_base][day_sal][day_settlement]) {
+          i=0
+          if (!i++) {
+            printf "支出"
+          }
+          for (q in social[day_base][day_sal][day_settlement][employee]) {
+            print social[day_base][day_sal][day_settlement][employee][q]
+          }
+        }
       }
     }
   }
@@ -64,7 +113,6 @@ END {
 function set(    insmap) {
   entry_date = cmn_to_mktime($9)
   use_lib_si(entry_date, insmap)
-  insmap["子ども・子育て拠出金（会社）"]["法定福利費"]           = get_plan4(entry_date)
 
   for (remarks in insmap) {
     for (account in insmap[remarks]) {
@@ -73,10 +121,12 @@ function set(    insmap) {
   }
 }
 
-function set_social(remarks, value, account) {
+function set_social(remarks, value, account    , pay_date) {
   cmn_debug_log("set_social#remarks, value, account : " remarks ", " value ", " account)
   if (value) {
-    social[cmn_entry_strdate()][$2][remarks]=",," cmn_entry_strdate() "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    entry_date = cmn_entry_strdate(remarks)
+    pay_date = cmn_pay_insur_strdate($7)
+    social[cmn_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
@@ -104,6 +154,7 @@ function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
         insmap["健康保険料（会社）"]["法定福利費"]     = get_insur(lib_si[start_date][end_date], age, "owner")
         insmap["厚生年金保険料（従業員）"]["預り金"]   = get_plan3(lib_si[start_date][end_date], age, "employee")
         insmap["厚生年金保険料（会社）"]["法定福利費"] = get_plan3(lib_si[start_date][end_date], age, "owner")
+        insmap["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(start_date, end_date)
         if (age > 39) {
           cmn_debug_log("介護保険料条件内age : " age " " cmn_emp_name())
           insmap["介護保険料（従業員）"]["預り金"]     = get_kaigo_ro(lib_si[start_date][end_date], age)
@@ -135,15 +186,9 @@ function get_plan3(lib_si, age, stat) {
   return mount
 }
 
-function get_plan4(entry_date) {
-  if (entry_date >= mktime("2020 04 01 00 00 00")) {
-    cmn_debug_log($77)
-    return int($77 * 0.0036)
-  }
-  if (entry_date >= mktime("2020 03 01 00 00 00") && entry_date < mktime("2020 04 01 00 00 00")) {
-    return int($77 * 0.0034)
-  }
-  if (entry_date < mktime("2020 03 01 00 00 00")) {
-    return int($77 * 0.0034)
-  }
+function calc_child_care(start_date, end_date,    i) {
+  cmn_debug_log("#calc_child_care,  $77=" $77)
+  i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $77
+  cmn_debug_log("#calc_child_care, lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE]=" lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE])
+  return int(cmn_bigdecimal(i))
 }
