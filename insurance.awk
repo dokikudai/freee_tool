@@ -77,6 +77,11 @@ ARGIND == ARGC - 1 && $5 == "給与" {
   cmn_debug_log("$5 == \"給与\"")
   set()
 }
+
+ARGIND == ARGC - 1 && $5 == "給与" && !year[substr($7, 1, 4)]++ {
+  cmn_holiday_api(substr($7, 1, 4))
+}
+
 END {
   # BOM
   printf "\xEF\xBB\xBF"
@@ -116,10 +121,12 @@ function set(    insmap) {
   }
 }
 
-function set_social(remarks, value, account) {
+function set_social(remarks, value, account    , pay_date) {
   cmn_debug_log("set_social#remarks, value, account : " remarks ", " value ", " account)
   if (value) {
-    social[cmn_entry_strdate()][cmn_entry_strdate(remarks)][$7][$2][remarks]=",," cmn_entry_strdate(remarks) "," $7 ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    entry_date = cmn_entry_strdate(remarks)
+    pay_date = cmn_pay_insur_strdate($7)
+    social[cmn_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 

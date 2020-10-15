@@ -75,6 +75,10 @@ ARGIND == ARGC - 1 && $5 == "賞与" && $41 {
   set_bounus()
 }
 
+ARGIND == ARGC - 1 && $5 == "賞与" && $41 && !year[substr($7, 1, 4)]++ {
+  cmn_holiday_api(substr($7, 1, 4))
+}
+
 END {
   # BOM
   printf "\xEF\xBB\xBF"
@@ -118,7 +122,9 @@ function calc_bounus(value) {
 
 function set_social_bounus(remarks, value, account) {
   if (value) {
-    social_bounus[cmn_bounus_entry_strdate()][cmn_bounus_entry_strdate(remarks)][cmn_bounus_insura_settle_date()][$2][remarks]=",," cmn_bounus_entry_strdate(remarks) "," cmn_bounus_insura_settle_date() ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    entry_date = cmn_bounus_entry_strdate(remarks)
+    pay_date = cmn_bounus_insura_settle_date()
+    social_bounus[cmn_bounus_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
