@@ -84,7 +84,6 @@ END {
   # BOM
   printf "\xEF\xBB\xBF"
 
-  # print "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
   print_header_csv(output_header_cols)
   print_data_csv()
 }
