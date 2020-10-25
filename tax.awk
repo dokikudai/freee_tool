@@ -1,27 +1,35 @@
 BEGIN {
   # 出力 csvのヘッダー
-  # [取引・口座振替のインポート（一括登録） – freee ヘルプセンター](https://support.freee.co.jp/hc/ja/articles/202847320-%E5%8F%96%E5%BC%95-%E5%8F%A3%E5%BA%A7%E6%8C%AF%E6%9B%BF%E3%81%AE%E3%82%A4%E3%83%B3%E3%83%9D%E3%83%BC%E3%83%88-%E4%B8%80%E6%8B%AC%E7%99%BB%E9%8C%B2-)
-  output_header_cols[1]  = "収支区分"
-  output_header_cols[2]  = "管理番号"
-  output_header_cols[3]  = "発生日"
-  output_header_cols[4]  = "決済期日"
-  output_header_cols[5]  = "取引先コード"
-  output_header_cols[6]  = "取引先"
-  output_header_cols[7]  = "勘定科目"
-  output_header_cols[8]  = "税区分"
-  output_header_cols[9]  = "金額"
-  output_header_cols[10] = "税計算区分"
-  output_header_cols[11] = "税額"
-  output_header_cols[12] = "備考"
-  output_header_cols[13] = "品目"
-  output_header_cols[14] = "部門"
-  output_header_cols[15] = "メモタグ（複数指定可、カンマ区切り）"
-  output_header_cols[16] = "セグメント1"
-  output_header_cols[17] = "セグメント2"
-  output_header_cols[18] = "セグメント3"
-  output_header_cols[19] = "決済日"
-  output_header_cols[20] = "決済口座"
-  output_header_cols[21] = "決済金額"
+  # [その他の会計ソフトから仕訳データを移行する（弥生会計形式を用いた方法） – freee ヘルプセンター](https://support.freee.co.jp/hc/ja/articles/202847920?_ga=2.203703952.1268415934.1603067789-2047650957.1599020498)
+  output_header_cols[1]  = "[表題行]"
+  output_header_cols[2]  = "日付"
+  output_header_cols[3]  = "伝票No."
+  output_header_cols[4]  = "借方勘定科目"
+  output_header_cols[5]  = "借方補助科目"
+  output_header_cols[6]  = "借方部門"
+  output_header_cols[7]  = "借方セグメント1"
+  output_header_cols[8]  = "借方セグメント2"
+  output_header_cols[9]  = "借方セグメント3"
+  output_header_cols[10] = "借方税区分"
+  output_header_cols[11] = "借方金額"
+  output_header_cols[12] = "借方税額"
+  output_header_cols[13] = "貸方勘定科目"
+  output_header_cols[14] = "貸方補助科目"
+  output_header_cols[15] = "貸方部門"
+  output_header_cols[16] = "貸方セグメント1"
+  output_header_cols[17] = "貸方セグメント2"
+  output_header_cols[18] = "貸方セグメント3"
+  output_header_cols[19] = "貸方税区分"
+  output_header_cols[20] = "貸方金額"
+  output_header_cols[21] = "貸方税額"
+  output_header_cols[22] = "摘要"
+  v_to_k_output_header_cols()
+}
+
+function v_to_k_output_header_cols(    k) {
+  for (k in output_header_cols) {
+    _output_header_cols[output_header_cols[k]] = k
+  }
 }
 
 # 賃金台帳の項目名から index に変換の連想配列を作成
@@ -51,6 +59,17 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name) 
   }
 }
 
+$col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与" {
+  set_tax_journals()
+}
+
+function set_tax_journals(    j1, j2, j3) {
+  j1 = entry_date()
+  j2 = work_in[$col_to_idx["従業員番号"]]
+  j3 = col_to_idx["所得税"]
+  journals[j1][j2][j3] += $col_to_idx["所得税"]
+}
+
 # 納期の特例支払期限
 function entry_date(    yyyy, mm) {
   yyyy = substr($col_to_idx["支給月日"], 1, 4)
@@ -63,21 +82,15 @@ function entry_date(    yyyy, mm) {
   }
 }
 
-$col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与" {
-  tmp_tax[entry_date()][set_depertment()] += $col_to_idx["所得税"]
+$col_to_idx["種別"] == "給与" && $col_to_idx["年末調整精算"] {
+  set_nomal_journals()
 }
 
-function set_depertment(    d, employee_no, no) {
-  PROCINFO["sorted_in"]="@ind_num_asc"
-  for (d in department_of) {
-    split(department_of[d], employee_no, ",")
-    for (no in employee_no) {
-      if ($col_to_idx["従業員番号"] == employee_no[no]) {
-        return d
-      }
-    }
-  }
-  return "無所属"
+function set_nomal_journals(    j1, j2, j3) {
+  j1 = $col_to_idx["支給月日"]
+  j2 = work_in[$col_to_idx["従業員番号"]]
+  j3 = col_to_idx["年末調整精算"]
+  journals[j1][j2][j3] = $col_to_idx["年末調整精算"]
 }
 
 END {
@@ -88,28 +101,103 @@ END {
   print_data_csv()
 }
 
-function print_data_csv(    date, dep) {
+function print_header_csv(cols    , i, col, str_cols, count) {
+  PROCINFO["sorted_in"]="@ind_num_asc"
+  for (i in cols) {
+    str_cols = str_cols csv_comma(count) cols[i]
+  }
+  print str_cols
+}
+
+function print_data_csv(    j1, j2, j3) {
   PROCINFO["sorted_in"]="@ind_str_asc"
-  for (date in tmp_tax) {
-    for (dep in tmp_tax[date]) {
-      print_csv_journals(date, dep, tmp_tax[date][dep])
+  # journalsループ
+  for (j1 in journals) {
+    for (j2 in journals[j1]) {
+      for (j3 in journals[j1][j2]) {
+        csv_output_csv_cols(j1, j2, j3)
+      }
     }
   }
 }
 
-function print_csv_journals(entry_date, depertment, tax_value    , journals) {
-  journals["所得税"][1]  = "支出"                           # 収支区分
-  journals["所得税"][3]  = entry_date                       # 発生日
-  journals["所得税"][4]  = entry_date                       # 決済期日
-  journals["所得税"][6]  = depertment                       # 取引先
-  journals["所得税"][7]  = "預り金"                         # 勘定科目
-  journals["所得税"][8]  = "対象外"                         # 税区分
-  journals["所得税"][9]  = tax_value                        # 金額
-  journals["所得税"][12] = remarks(entry_date, depertment)  # 備考
-  journals["所得税"][13] = "所得税"                         # 品目
-  journals["所得税"][14] = depertment                       # 部門
-  journals["所得税"][15] = tags(entry_date)                 # メモタグ（複数指定可、カンマ区切り）
-  print create_data_csv(journals)
+function csv_output_csv_cols(j1, j2, j3    , output_csv_cols) {
+  _amount = journals[j1][j2][j3]
+  # 所得税
+  if (j3 == col_to_idx["所得税"]) {
+    output_csv_cols[j3][_o("[表題行]")]     = "[明細行]"
+    output_csv_cols[j3][_o("日付")]         = j1
+    output_csv_cols[j3][_o("伝票No.")]      = ++j_count
+    output_csv_cols[j3][_o("借方勘定科目")] = "預り金"
+    output_csv_cols[j3][_o("借方補助科目")] = idx_to_col(j3)
+    output_csv_cols[j3][_o("借方部門")]     = get_depertment(j2)
+    output_csv_cols[j3][_o("借方税区分")]   = "対象外"
+    output_csv_cols[j3][_o("借方金額")]     = _amount
+    output_csv_cols[j3][_o("借方税額")]     = 0
+    output_csv_cols[j3][_o("貸方勘定科目")] = "未払金"
+    output_csv_cols[j3][_o("貸方補助科目")] = idx_to_col(j3)
+    output_csv_cols[j3][_o("貸方部門")]     = get_depertment(j2)
+    output_csv_cols[j3][_o("貸方税区分")]   = "対象外"
+    output_csv_cols[j3][_o("貸方金額")]     = _amount
+    output_csv_cols[j3][_o("貸方税額")]     = 0
+    output_csv_cols[j3][_o("摘要")]         = remarks(j1, get_depertment(j2))
+  }
+
+  # 年末調整精算
+  if (j3 == col_to_idx["年末調整精算"]) {
+    output_csv_cols[j3][_o("[表題行]")]     = "[明細行]"
+    output_csv_cols[j3][_o("日付")]         = j1
+    output_csv_cols[j3][_o("伝票No.")]      = ++j_count
+    output_csv_cols[j3][_o("借方勘定科目")] = get_journal(_amount, _o("借方勘定科目"))
+    output_csv_cols[j3][_o("借方補助科目")] = idx_to_col(j3)
+    output_csv_cols[j3][_o("借方部門")]     = get_depertment(j2)
+    output_csv_cols[j3][_o("借方税区分")]   = "対象外"
+    output_csv_cols[j3][_o("借方金額")]     = abs(_amount)
+    output_csv_cols[j3][_o("借方税額")]     = 0
+    output_csv_cols[j3][_o("貸方勘定科目")] = get_journal(_amount, _o("貸方勘定科目"))
+    output_csv_cols[j3][_o("貸方補助科目")] = idx_to_col(j3)
+    output_csv_cols[j3][_o("貸方部門")]     = get_depertment(j2)
+    output_csv_cols[j3][_o("貸方税区分")]   = "対象外"
+    output_csv_cols[j3][_o("貸方金額")]     = abs(_amount)
+    output_csv_cols[j3][_o("貸方税額")]     = 0
+    output_csv_cols[j3][_o("摘要")]         = remarks(j1, get_depertment(j2))
+  }
+  print_output_csv_cols(output_csv_cols, j3)
+}
+
+function _o(col) {
+  return _output_header_cols[col]
+}
+
+function get_journal(amount, account) {
+    if (amount > 0 && account == _o("借方勘定科目")) {
+      return "預り金"
+    }
+    if (amount > 0 && account == _o("貸方勘定科目")) {
+      return "未払金"
+    }
+    if (amount < 0 && account == _o("借方勘定科目")) {
+      return "未払金"
+    }
+    if (amount < 0 && account == _o("貸方勘定科目")) {
+      return "預り金"
+    }
+}
+
+function abs(amount) {
+    if (_amount < 0) {
+      return -1 * _amount 
+    } else {
+      return amount
+    }
+}
+
+function idx_to_col(idx) {
+  for (journal in col_to_idx) {
+    if (idx == col_to_idx[journal]) {
+      return journal
+    }
+  }
 }
 
 function remarks(entry_date, depertment    , yyyy, mm) {
@@ -129,27 +217,17 @@ function tags(entry_date) {
   }
 }
 
-function print_header_csv(cols    , i, col, str_cols, count) {
+function print_output_csv_cols(output_csv_cols, journal    , i, col, str_cols, count) {
   PROCINFO["sorted_in"]="@ind_num_asc"
-  for (i in cols) {
-    str_cols = str_cols csv_comma(count) cols[i]
+  for (i in output_header_cols) {
+    if (i in output_csv_cols[journal]) {
+      col = csv_comma(count) output_csv_cols[journal][i]
+    } else {
+      col = csv_comma(count)
+    }
+    str_cols = str_cols col
   }
   print str_cols
-}
-
-function create_data_csv(journals    , j, i, col, str_cols, count) {
-  PROCINFO["sorted_in"]="@ind_num_asc"
-  for (j in journals) {
-    for (i in output_header_cols) {
-      if (i in journals[j]) {
-        col = csv_comma(count) journals[j][i]
-      } else {
-        col = csv_comma(count)
-      }
-      str_cols = str_cols col
-    }
-  }
-  return str_cols
 }
 
 function csv_comma(count) {
