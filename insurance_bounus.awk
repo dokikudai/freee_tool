@@ -124,7 +124,7 @@ function set_social_bounus(remarks, value, account) {
   if (value) {
     entry_date = cmn_bounus_entry_strdate(remarks)
     pay_date = cmn_bounus_insura_settle_date()
-    social_bounus[cmn_bounus_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social_bounus[cmn_bounus_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
@@ -172,13 +172,13 @@ function use_lib_si_bounus(insmap_bonus,    start_date, end_date, age) {
     for (end_date in lib_si_bounus[start_date]) {
       cmn_debug_log("use_lib_si_bounus,= " start_date ", end_date = " end_date ", pay_month = " pay_month)
       if (pay_month >= start_date && pay_month < end_date) {
-        insmap_bonus["健康保険料（従業員）"]["預り金"]             = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "employee")
+        insmap_bonus["健康保険料（従業員）"]["預り金（社会保険）"]             = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "employee")
         insmap_bonus["健康保険料（会社）"]["法定福利費"]           = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "owner")
         if (age > 39) {
-          insmap_bonus["介護保険料（従業員）"]["預り金"]           = calc_long_term_care(lib_si_bounus[start_date][end_date], age)
-          insmap_bonus["介護保険料（会社）"]["法定福利費"]         = insmap_bonus["介護保険料（従業員）"]["預り金"]
+          insmap_bonus["介護保険料（従業員）"]["預り金（社会保険）"]           = calc_long_term_care(lib_si_bounus[start_date][end_date], age)
+          insmap_bonus["介護保険料（会社）"]["法定福利費"]         = insmap_bonus["介護保険料（従業員）"]["預り金（社会保険）"]
         }
-        insmap_bonus["厚生年金保険料（従業員）"]["預り金"]         = calc_welfare_pension(lib_si_bounus[start_date][end_date], "employee")
+        insmap_bonus["厚生年金保険料（従業員）"]["預り金（社会保険）"]         = calc_welfare_pension(lib_si_bounus[start_date][end_date], "employee")
         insmap_bonus["厚生年金保険料（会社）"]["法定福利費"]       = calc_welfare_pension(lib_si_bounus[start_date][end_date], "owner")
         insmap_bonus["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(lib_si_bounus[start_date][end_date])
       }

@@ -21,20 +21,21 @@ function init_use_csv_cols(    i) {
   use_csv_cols[++i] = "天引き"
 }
 function init_ul_sal_vals(    i) {
-  #                  "品目(item),               勘定科目(account), 備考(remarks),            tag       "
-  ul_sal_vals[++i] = "給料賃金,                 給料賃金,          給料賃金,                 null"
-  ul_sal_vals[++i] = "賞与,                     賞与,              賞与,                     null"
-  ul_sal_vals[++i] = "住民税,                   預り金,            住民税,                   null"
-  ul_sal_vals[++i] = "健康保険料（従業員）,     預り金,            健康保険料（従業員）,     社会保険料"
-  ul_sal_vals[++i] = "介護保険料（従業員）,     預り金,            介護保険料（従業員）,     社会保険料"
-  ul_sal_vals[++i] = "厚生年金保険料（従業員）, 預り金,            厚生年金保険料（従業員）, 社会保険料"
-  ul_sal_vals[++i] = "雇用保険料（従業員）,     預り金,            雇用保険料（従業員）,     労働保険料"
-  ul_sal_vals[++i] = "所得税,                   預り金,            所得税,                   null"
-  ul_sal_vals[++i] = "通勤手当,                 通勤定期,          通勤手当,                 null"
-  ul_sal_vals[++i] = "調整(精算済み),           給料調整（預り金）,調整(精算済み),           null"
-  ul_sal_vals[++i] = "調整(精算待ち),           給料調整（預り金）,調整(精算待ち),           null"
-  ul_sal_vals[++i] = "天引き,                   預り金,            天引き,                   null"
+  #                  "品目(item),               勘定科目(account),          備考(remarks),            tag,　税区分"
+  ul_sal_vals[++i] = "給料賃金,                 給料賃金,                   給料賃金,                 null,       null"
+  ul_sal_vals[++i] = "賞与,                     賞与,                       賞与,                     null,       null"
+  ul_sal_vals[++i] = "住民税,                   預り金（住民税）,           住民税,                   null,       null"
+  ul_sal_vals[++i] = "健康保険料（従業員）,     預り金（社会保険）,         健康保険料（従業員）,     社会保険料, null"
+  ul_sal_vals[++i] = "介護保険料（従業員）,     預り金（社会保険）,         介護保険料（従業員）,     社会保険料, null"
+  ul_sal_vals[++i] = "厚生年金保険料（従業員）, 預り金（社会保険）,         厚生年金保険料（従業員）, 社会保険料, null"
+  ul_sal_vals[++i] = "雇用保険料（従業員）,     預り金（労働保険）,         雇用保険料（従業員）,     労働保険料, null"
+  ul_sal_vals[++i] = "所得税,                   預り金（従業員源泉徴収税）, 所得税,                   null,       null"
+  ul_sal_vals[++i] = "通勤定期,                 通勤手当,                   通勤定期,                 null,       1"
+  ul_sal_vals[++i] = "調整(精算済み),           給料調整（預り金）,         調整(精算済み),           null,       null"
+  ul_sal_vals[++i] = "調整(精算待ち),           給料調整（預り金）,         調整(精算待ち),           null,       null"
+  ul_sal_vals[++i] = "天引き,                   預り金（天引）,             天引き,                   null,       null"
 }
+
 function init_ul_officer_sal_vals(    i) {
   #                  "品目(item),               勘定科目(account), 備考(remarks),            tag       "
   ul_officer_sal_vals[++i] = "役員報酬,         給料賃金,          役員報酬,                 null"
@@ -138,20 +139,34 @@ function set_salarys(salary_kbn, usr_lib_salarys,    entry_date, no, value, lib_
       # lib_acc[2] = account
       # lib_acc[3] = remarks
       # lib_acc[4] = tag
+      # lib_acc[5] = tax
 
       # 文字列を数字化
       if (value * 1) {
         cmn_debug_log("gensub $1 : " gensub(/[ 　]/, "", "g", $1))
         #cmn_debug_log(",," $9 "," $7 ",," $1 "," account ",対象外," value ",,," remarks "," item "," $1 ",\""tags"\",,,,,,")
-        salarys[entry_date][salary_kbn][$2][no] = ",," entry_date "," cmn_pay_strdate() ",," cmn_emp_name() "," lib_acc[2] ",対象外," value ",,," lib_acc[3] "," lib_acc[1] "," cmn_emp_name() ",\"" get_tags(lib_acc[4]) "\",,,,,,"
+        salarys[entry_date][salary_kbn][$2][no] = ",," entry_date "," cmn_pay_strdate() ",,従業員," lib_acc[2] "," tax(lib_acc[5], entry_date) "," value ",,," lib_acc[3] "," lib_acc[1] "," cmn_emp_name() ",\"" get_tags(lib_acc[4]) "\",,,,,,"
       }
     }
   }
 }
 
+function tax(k, date) {
+  if (k == "1") {
+    if (mktime(gensub("/", " ", "g", date) " 00 00 00") < mktime("2019 10 01 00 00 00")) {
+      return "課対仕入8%"
+    } else {
+      return "課対仕入10%"
+    }
+  } else {
+    return "対象外"
+  }
+}
+
+
 function set_ets(    usr_lib_ets, i, no, value, lib_acc, tags) {
-  #          [No.][value   ]   "品目(item),               勘定科目(account), 備考(remarks),            tag       "
-  usr_lib_ets[++i][$csv_cols["年末調整精算"] * -1] = "年末調整精算,             預り金,            年末調整精算,             null"
+  #          [No.][value                         ]   "品目(item),  勘定科目(account),         備考(remarks),tag"
+  usr_lib_ets[++i][$csv_cols["年末調整精算"] * -1] = "年末調整精算,預り金（従業員源泉徴収税）,年末調整精算, null"
 
   for (no in usr_lib_ets) {
     for (value in usr_lib_ets[no]) {
@@ -162,7 +177,7 @@ function set_ets(    usr_lib_ets, i, no, value, lib_acc, tags) {
       # lib_acc[4] = tag
       if (value * 1) {
         #gsub(" ", "", $1)
-        ets[cmn_entry_strdate()]["tmp"][$2][no] = ",," cmn_entry_strdate() "," cmn_pay_strdate() ",," cmn_emp_name() "," lib_acc[2] ",対象外," value ",,," lib_acc[3] "," lib_acc[1] "," cmn_emp_name() ",\"" get_tags(lib_acc[4]) "\",,,,,,"
+        ets[cmn_entry_strdate()]["tmp"][$2][no] = ",," cmn_entry_strdate() "," cmn_pay_strdate() ",,従業員," lib_acc[2] ",対象外," value ",,," lib_acc[3] "," lib_acc[1] "," cmn_emp_name() ",\"" get_tags(lib_acc[4]) "\",,,,,,"
       }
     }
   }

@@ -126,7 +126,7 @@ function set_social(remarks, value, account    , pay_date) {
   if (value) {
     entry_date = cmn_entry_strdate(remarks)
     pay_date = cmn_pay_insur_strdate($7)
-    social[cmn_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",," cmn_emp_name() "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social[cmn_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
@@ -150,15 +150,15 @@ function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
       if (entry_date >= start_date && entry_date < end_date) {
         age = cmn_age()
         cmn_debug_log("entry_date, age : " entry_date ", " age)
-        insmap["健康保険料（従業員）"]["預り金"]       = get_insur(lib_si[start_date][end_date], age, "employee")
+        insmap["健康保険料（従業員）"]["預り金（社会保険）"]       = get_insur(lib_si[start_date][end_date], age, "employee")
         insmap["健康保険料（会社）"]["法定福利費"]     = get_insur(lib_si[start_date][end_date], age, "owner")
-        insmap["厚生年金保険料（従業員）"]["預り金"]   = get_plan3(lib_si[start_date][end_date], age, "employee")
+        insmap["厚生年金保険料（従業員）"]["預り金（社会保険）"]   = get_plan3(lib_si[start_date][end_date], age, "employee")
         insmap["厚生年金保険料（会社）"]["法定福利費"] = get_plan3(lib_si[start_date][end_date], age, "owner")
         insmap["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(start_date, end_date)
         if (age > 39) {
           cmn_debug_log("介護保険料条件内age : " age " " cmn_emp_name())
-          insmap["介護保険料（従業員）"]["預り金"]     = get_kaigo_ro(lib_si[start_date][end_date], age)
-          insmap["介護保険料（会社）"]["法定福利費"]   = insmap["介護保険料（従業員）"]["預り金"]
+          insmap["介護保険料（従業員）"]["預り金（社会保険）"]     = get_kaigo_ro(lib_si[start_date][end_date], age)
+          insmap["介護保険料（会社）"]["法定福利費"]   = insmap["介護保険料（従業員）"]["預り金（社会保険）"]
         }
       }
     }
