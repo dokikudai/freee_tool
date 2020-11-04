@@ -194,3 +194,23 @@ function cmn_holiday_api(year    , i) {
     }
   }
 }
+
+  # 5捨5超入
+  function in_over5(n    , int_n, decimal_n) {
+    int_n = int(n)
+    decimal_n = n - int_n
+    if (decimal_n > 0.5) {
+      return int_n + 1
+    }
+    return int_n
+  }
+
+  # 4捨5入
+  function round_half_up(n    , int_n, decimal_n) {
+    int_n = int(n)
+    decimal_n = n - int_n
+    if (decimal_n >= 0.5) {
+      return int_n + 1
+    }
+    return int_n
+  }
