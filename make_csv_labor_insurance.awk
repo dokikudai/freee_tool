@@ -63,20 +63,15 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name) 
 }
 
 function set_nomal_journals(    j1, j2, j3) {
-  j1 = $col_to_idx["種別"]
   if ($col_to_idx["種別"] == "賞与") {
-    j2 = cmn_bounus_entry_strdate()
+    j1 = _cmn_bounus_entry_date($col_to_idx["支給月日"])
   }
   if ($col_to_idx["種別"] == "給与") {
-    j2 = $col_to_idx["給与計算締日（固定給）"]
+    j1 = $col_to_idx["給与計算締日（固定給）"]
   }
-  j3 = work_in[$col_to_idx["従業員番号"]]
+  j2 = work_in[$col_to_idx["従業員番号"]]
+  j3 = $col_to_idx["種別"]
   journals[j1][j2][j3] = $col_to_idx["総支給額"] "," $col_to_idx["雇用保険料"]
-
-  # 休日API利用
-  if (!cmn_holiday_api_count++) {
-    cmn_holiday_api(substr(pay_date(j2), 1, 4))
-  }
 }
 
 END {
@@ -85,6 +80,14 @@ END {
 
   print_header_csv(output_header_cols)
   print_data_csv()
+  # 未実装 労働保険の確定・概算仕訳
+  # print_labor_insurance_sum()
+}
+
+function print_labor_insurance_sum(    i) {
+  for (i in labor_insurance_sum) {
+    print i, labor_insurance_sum[i]
+  }
 }
 
 function print_header_csv(cols    , i, col, str_cols, count) {
@@ -95,20 +98,19 @@ function print_header_csv(cols    , i, col, str_cols, count) {
   print str_cols
 }
 
-function print_data_csv(    j1) {
+function print_data_csv(    j1, counter) {
   PROCINFO["sorted_in"]="@ind_str_asc"
   # journalsループ
   for (j1 in journals) {
+    if (cmn_is_date(j1)) {
+      continue
+    }
     output_csv_owner(journals[j1], j1)
-    set_csv_emplyee(journals[j1], j1)
   }
 }
 
 function output_csv_owner(journals_j1, j1    , j2, j3) {
   for (j2 in journals_j1) {
-    if (cmn_is_date(j2)) {
-      continue
-    }
     for (j3 in journals_j1[j2]) {
       output_csv_owner_1(j1, j2, j3)
       output_csv_owner_2(j1, j2, j3)
@@ -120,81 +122,55 @@ function output_csv_owner(journals_j1, j1    , j2, j3) {
 function output_csv_owner_1(j1, j2, j3    , _amount, output_csv_cols) {
   split(journals[j1][j2][j3], _amount, ",")
   output_csv_cols[_o("収支区分")]  = "支出"
-  output_csv_cols[_o("発生日")]    = j2
-  output_csv_cols[_o("決済期日")]  = pay_date(j2)
-  output_csv_cols[_o("取引先")]    = "従業員"
-  output_csv_cols[_o("勘定科目")]  = "法定福利費"
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = pay_date(j1)
+  output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
+  output_csv_cols[_o("勘定科目")]  = "法定福利費（労働保険）"
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = round_half_up(_amount[1] * 6 / 1000)
-  output_csv_cols[_o("備考")]      = remarks(j2, j1)
-  output_csv_cols[_o("品目")]      = "雇用保険（事業主）"
-  output_csv_cols[_o("部門")]      = cmn_emp_name()
-  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j1)
+  output_csv_cols[_o("備考")]      = remarks(j1, j3)
+  output_csv_cols[_o("品目")]      = "雇用保険（会社）"
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j3)
   print_output_csv_cols(output_csv_cols)
+
+  labor_insurance_sum["雇用保険（会社）"] += output_csv_cols[_o("金額")]
 }
 
 function output_csv_owner_2(j1, j2, j3    , _amount, output_csv_cols) {
   split(journals[j1][j2][j3], _amount, ",")
   output_csv_cols[_o("収支区分")]  = ""
-  output_csv_cols[_o("発生日")]    = j2
-  output_csv_cols[_o("決済期日")]  = pay_date(j2)
-  output_csv_cols[_o("取引先")]    = "従業員"
-  output_csv_cols[_o("勘定科目")]  = "法定福利費"
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = pay_date(j1)
+  output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
+  output_csv_cols[_o("勘定科目")]  = "法定福利費（労働保険）"
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = round_half_up(_amount[1] * 3 / 1000)
-  output_csv_cols[_o("備考")]      = remarks(j2, j1)
-  output_csv_cols[_o("品目")]      = "労災保険（事業主）"
-  output_csv_cols[_o("部門")]      = cmn_emp_name()
-  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j1)
+  output_csv_cols[_o("備考")]      = remarks(j1, j3)
+  output_csv_cols[_o("品目")]      = "労災保険（会社）"
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j3)
   print_output_csv_cols(output_csv_cols)
+
+  labor_insurance_sum["労災保険（会社）"] += output_csv_cols[_o("金額")]
 }
 
 function output_csv_owner_3(j1, j2, j3    , _amount, output_csv_cols) {
   split(journals[j1][j2][j3], _amount, ",")
   output_csv_cols[_o("収支区分")]  = ""
-  output_csv_cols[_o("発生日")]    = j2
-  output_csv_cols[_o("決済期日")]  = pay_date(j2)
-  output_csv_cols[_o("取引先")]    = "従業員"
-  output_csv_cols[_o("勘定科目")]  = "法定福利費"
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = pay_date(j1)
+  output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
+  output_csv_cols[_o("勘定科目")]  = "法定福利費（労働保険）"
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = int(_amount[1] * 0.02 / 1000)
-  output_csv_cols[_o("備考")]      = remarks(j2, j1)
-  output_csv_cols[_o("品目")]      = "一般拠出金（事業主）"
-  output_csv_cols[_o("部門")]      = cmn_emp_name()
-  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j1)
+  output_csv_cols[_o("備考")]      = remarks(j1, j3)
+  output_csv_cols[_o("品目")]      = "一般拠出（会社）"
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j3)
   print_output_csv_cols(output_csv_cols)
-}
 
-function set_csv_emplyee(journals_j1, j1    , j2, j3, counter) {
-  for (j2 in journals_j1) {
-    if (cmn_is_date(j2)) {
-      continue
-    }
-    for (j3 in journals_j1[j2]) {
-      set_csv_emplyee_1(j1, j2, j3, counter[pay_date(j2)]++)
-    }
-  }
-}
-
-function set_csv_emplyee_1(j1, j2, j3, c    , _amount, output_csv_cols) {
-  split(journals[j1][j2][j3], _amount, ",")
-  output_csv_cols[_o("収支区分")]  = output_csv_emplyee1_bp(c)
-  output_csv_cols[_o("発生日")]    = pay_date(j2)
-  output_csv_cols[_o("決済期日")]  = pay_date(j2)
-  output_csv_cols[_o("取引先")]    = "従業員"
-  output_csv_cols[_o("勘定科目")]  = "預り金（労働保険）"
-  output_csv_cols[_o("税区分")]    = "対象外"
-  output_csv_cols[_o("金額")]      = in_over5(_amount[1] * 3 / 1000)
-  output_csv_cols[_o("備考")]      = remarks(j2, j1)
-  output_csv_cols[_o("品目")]      = "雇用保険料（従業員）"
-  output_csv_cols[_o("部門")]      = cmn_emp_name()
-  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j1)
-  if (output_csv_cols[_o("金額")] == _amount[2]) {
-    print_output_csv_cols(output_csv_cols)
-  } else {
-    print "freee賃金台帳と雇用保険料（従業員）の金額があっていません。"
-    exit 1
-  }
+  labor_insurance_sum["一般拠出（会社）"] += output_csv_cols[_o("金額")]
 }
 
 function _o(col) {
@@ -213,18 +189,18 @@ function pay_date(date) {
   yyyy = substr(date, 1, 4)
     mm = substr(date, 6, 2)
   if (mm ~ /0[123]/ ) {
-    return cmn_pay_insur_strdate(yyyy "/07/10")
+    return cmn_strftime_skip_holiday(yyyy "/07/10")
   } else {
-    return cmn_pay_insur_strdate(yyyy+1 "/07/10")
+    return cmn_strftime_skip_holiday(yyyy + 1 "/07/10")
   }
 }
 
-function remarks(j2, j1) {
-  return pay_date(j2) "納付期限、労働保険料、" j2 "締め" j1 "）"
+function remarks(j1, j3) {
+  return pay_date(j1) "納付期限、労働保険料、" j1 "締め" j3 "）"
 }
 
-function tags(j1) {
-  return "\"" "import_労働保険,労働保険," j1 "\""
+function tags(j3) {
+  return "\"" "import_労働保険,労働保険," j3 "\""
 }
 
 function abs(amount) {

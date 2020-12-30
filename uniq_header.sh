@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# csvのヘッダー表示が複数ある場合に最初の表示だけする
+# ヘッダー表示が複数ある場合に最初の表示だけする
 #
 
 VERSION=1.0
 
 usage() {
   echo "Usage: $PROGNAME [OPTIONS] FILE"
-  echo "  csvのヘッダー表示が複数ある場合に最初の表示だけする。"
+  echo "  ヘッダー表示が複数ある場合に最初の表示だけする。"
   echo
   echo "Options:"
   echo "  -h, --help"
