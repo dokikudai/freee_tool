@@ -1,9 +1,17 @@
 #!/bin/bash
+#
+# 標準出力をファイル化する
+# freee 取引のインポート専用スクリプトのため微妙な気がしている
+#
 source ./common.sh
 
+output_path=
 save_file_name="labor_insurance"
 
-awk -F',' -v save_file_name="${save_file_name}" '
+awk -F',' \
+-v save_file_name="${save_file_name}" \
+-v output_path="${output_import_csv_dir}" \
+'
     {
         to_data[++i]=$0
     }
@@ -18,7 +26,7 @@ awk -F',' -v save_file_name="${save_file_name}" '
         printf "" >save_file_name "_" _start_yymm "_" _end_yymm ".csv"
         PROCINFO["sorted_in"]="@ind_num_asc"
         for (data in to_data) {
-            print to_data[data] >>save_file_name "_" _start_yymm "_" _end_yymm ".csv"
+            print to_data[data] >>"./" output_path "/" save_file_name "_" _start_yymm "_" _end_yymm ".csv"
         }
     }
 
@@ -27,5 +35,3 @@ awk -F',' -v save_file_name="${save_file_name}" '
         return sprintf(yyyymmdd[1] yyyymmdd[2])
     }
 '
-
-#cat > ./${output_import_csv_dir}/${csv_file}_${start_yymm}_${end_yymm}.csv

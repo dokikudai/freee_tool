@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# freeeの賃金台帳.csv（payroll.csv）からfreee労働保険料仕訳を作成する
+#
 source ./common.sh
 
 awk -v v_debug_lfg=${ARG_D} \

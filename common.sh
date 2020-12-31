@@ -6,6 +6,8 @@ set -eu
 readonly input_payroll_csv="input_payroll_csv/payroll_book-*.csv"
 readonly output_import_csv_dir="output_import_csv"
 
+mkdir -p ./${output_import_csv_dir}
+
 function encode_payroll() {
   mime_encoding=$(file --mime-encoding $1 | awk '{print $2}')
   if [[ "${mime_encoding}" = 'unknown-8bit' ]]; then

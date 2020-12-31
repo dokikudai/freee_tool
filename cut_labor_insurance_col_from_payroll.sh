@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# freeeの賃金台帳（payroll）から必要項目だけ切り出す
+# bug: from, to オプションは賞与に対応していないので後日修正
+#
 source ./common.sh
 
 ls -1 ./${input_payroll_csv} \
