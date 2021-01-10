@@ -1,6 +1,7 @@
 BEGIN {
   PROCINFO["sorted_in"]="@ind_str_asc"
   SQ="\047"
+  DQ="\042"
 }
 
 # 賃金台帳の従業員名からスペースを除く

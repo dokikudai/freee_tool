@@ -23,10 +23,11 @@ awk -F',' \
     }
 
     END {
-        printf "" >save_file_name "_" _start_yymm "_" _end_yymm ".csv"
+        save_file="./" output_path "/" save_file_name "_" _start_yymm "_" _end_yymm ".csv"
+        printf "" >save_file
         PROCINFO["sorted_in"]="@ind_num_asc"
         for (data in to_data) {
-            print to_data[data] >>"./" output_path "/" save_file_name "_" _start_yymm "_" _end_yymm ".csv"
+            print to_data[data] >>save_file
         }
     }
 
