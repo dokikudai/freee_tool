@@ -27,10 +27,6 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
   cmn_lib_use_idx(v_use_idx)
 }
 
-($col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与") && $col_to_idx["雇用保険料"] {
-  set_data()
-}
-
 function set_data(    i, d, count) {
   if (cmn_is_date($col_to_idx["給与計算締日（固定給）"])) {
     return
