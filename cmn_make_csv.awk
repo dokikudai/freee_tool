@@ -58,22 +58,6 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name) 
   }
 }
 
-($col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与") && $col_to_idx["雇用保険料"] {
-  set_nomal_journals()
-}
-
-function set_nomal_journals(    j1, j2, j3) {
-  if ($col_to_idx["種別"] == "賞与") {
-    j1 = _cmn_bounus_entry_date($col_to_idx["支給月日"])
-  }
-  if ($col_to_idx["種別"] == "給与") {
-    j1 = $col_to_idx["給与計算締日（固定給）"]
-  }
-  j2 = work_in[$col_to_idx["従業員番号"]]
-  j3 = $col_to_idx["種別"]
-  journals[j1][j2][j3] = $col_to_idx["総支給額"] "," $col_to_idx["雇用保険料"]
-}
-
 END {
   # BOM
   printf "\xEF\xBB\xBF"
@@ -82,12 +66,6 @@ END {
   print_data_csv()
   # 未実装 労働保険の確定・概算仕訳
   # print_labor_insurance_sum()
-}
-
-function print_labor_insurance_sum(    i) {
-  for (i in labor_insurance_sum) {
-    print i, labor_insurance_sum[i]
-  }
 }
 
 function print_header_csv(cols    , i, col, str_cols, count) {
@@ -113,20 +91,6 @@ function _o(col) {
   return _output_header_cols[col]
 }
 
-function odd_or_even(strdate,    d) {
-  split(strdate, d , "/")
-  if (d[1] % 2 && d[2] ~ /0[1-3]/) {
-    return "偶"
-  }
-  if (d[1] % 2) {
-    return "奇"
-  }
-  if (d[2] ~ /0[1-3]/) {
-    return "奇"
-  }
-  return "偶"
-}
-
 function output_csv_emplyee1_bp(c) {
   if (c) {
     return "" 
@@ -143,22 +107,6 @@ function pay_date(date) {
   } else {
     return cmn_strftime_skip_holiday(yyyy + 1 "/07/10")
   }
-}
-
-function remarks(j1, j3) {
-  return ""
-}
-
-function tags(j1, j3) {
-  return DQ "import_労働保険,労働保険," substr(j1,6,5) "締め" j3 DQ
-}
-
-function abs(amount) {
-    if (_amount < 0) {
-      return -1 * _amount 
-    } else {
-      return amount
-    }
 }
 
 function idx_to_col(idx) {
