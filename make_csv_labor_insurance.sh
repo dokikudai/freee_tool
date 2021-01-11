@@ -10,4 +10,5 @@ awk -v v_debug_lfg=${ARG_D} \
     -F ',' \
     -f cmn.awk \
     -f property.awk \
-    -f make_csv_labor_insurance.awk
+    -f make_csv_labor_insurance.awk \
+    -f cmn_make_csv.awk
