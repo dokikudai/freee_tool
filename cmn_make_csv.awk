@@ -44,7 +44,7 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name) 
   for (i in p) {
     if ($i) {
       col_to_idx[$i] = i
-      count[$i]
+      count[$i]++
     } else {
       print "不正なCSVヘッダー項目nullがありました。"
       exit 1
