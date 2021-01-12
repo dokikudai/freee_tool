@@ -2,15 +2,6 @@ $col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与" {
   set_nomal_journals()
 }
 
-# 従業員番号,種別,支給月日,給与計算締日（固定給）,基本給,賞与,健康保険料,介護保険料,厚生年金保険料,雇用保険料,住民税,所得税,非課税通勤手当,調整(精算済み),調整(精算待ち),天引き
-#function create(    use_col_strings, use_vals, idx) {
-#  use_col_strings = "支給月日,基本給,賞与,健康保険料,介護保険料,厚生年金保険料,雇用保険料,住民税,所得税,非課税通勤手当,調整(精算済み),調整(精算待ち),天引き"
-#  sprit(use_col_strings, use_vals, ",")
-#  for (idx in use_vals) {
-#    vals_salary[use_vals[idx]] = idx
-#  }
-#}
-
 function set_nomal_journals(    j1, j2, j3) {
   if ($col_to_idx["種別"] == "賞与") {
     j1 = _cmn_bounus_entry_date($col_to_idx["支給月日"])
