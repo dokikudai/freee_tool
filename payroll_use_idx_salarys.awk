@@ -19,4 +19,5 @@ function cmn_lib_use_idx(v_use_idx) {
     use_idx[++idx] = col_to_idx["調整(精算済み)"]
     use_idx[++idx] = col_to_idx["調整(精算待ち)"]
     use_idx[++idx] = col_to_idx["天引き"]
+    use_idx[++idx] = col_to_idx["年末調整精算"]
 }

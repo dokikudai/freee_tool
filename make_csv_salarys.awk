@@ -28,6 +28,7 @@ function output_csv_owner(journals_j1, j1    , j2, j3) {
       output_csv_owner_9(j1, j2, j3)
       output_csv_owner_10(j1, j2, j3)
       output_csv_owner_11(j1, j2, j3)
+      output_csv_owner_12(j1, j2, j3)
     }
   }
 }
@@ -167,7 +168,7 @@ function output_csv_owner_6(j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("発生日")]    = j1
   output_csv_cols[_o("決済期日")]  = $col_to_idx["支給月日"]
   output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
-  output_csv_cols[_o("勘定科目")]  = "未払費用（労働保険）"
+  output_csv_cols[_o("勘定科目")]  = "未払費用（労働保険）" odd_or_even(j1)
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = $col_to_idx["雇用保険料"] * -1
   output_csv_cols[_o("備考")]      = ""
@@ -175,6 +176,20 @@ function output_csv_owner_6(j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("部門")]      = get_depertment(j2)
   output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx["支給月日"], j3)
   print_output_csv_cols(output_csv_cols)
+}
+
+function odd_or_even(strdate,    d) {
+  split(strdate, d , "/")
+  if (d[1] % 2 && d[2] ~ /0[1-3]/) {
+    return "偶"
+  }
+  if (d[1] % 2) {
+    return "奇"
+  }
+  if (d[2] ~ /0[1-3]/) {
+    return "奇"
+  }
+  return "偶"
 }
 
 function output_csv_owner_7(j1, j2, j3    , output_csv_cols) {
@@ -222,13 +237,20 @@ function output_csv_owner_8(j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("決済期日")]  = $col_to_idx["支給月日"]
   output_csv_cols[_o("取引先")]    = "従業員"
   output_csv_cols[_o("勘定科目")]  = "通勤手当"
-  output_csv_cols[_o("税区分")]    = "課対仕入10%"
+  output_csv_cols[_o("税区分")]    = tax_8_or_10(j1)
   output_csv_cols[_o("金額")]      = $col_to_idx["非課税通勤手当"]
   output_csv_cols[_o("備考")]      = ""
   output_csv_cols[_o("品目")]      = ""
   output_csv_cols[_o("部門")]      = get_depertment(j2)
   output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx["支給月日"], j3)
   print_output_csv_cols(output_csv_cols)
+}
+
+function tax_8_or_10(date) {
+  if (mktime(gensub("/", " ", "g", date) " 00 00 00") < mktime("2019 10 01 00 00 00")) {
+    return "課対仕入8%"
+  }
+  return "課対仕入10%"
 }
 
 function output_csv_owner_9(j1, j2, j3    , output_csv_cols) {
@@ -294,6 +316,27 @@ function output_csv_owner_11(j1, j2, j3    , output_csv_cols) {
   print_output_csv_cols(output_csv_cols)
 }
 
+function output_csv_owner_12(j1, j2, j3    , output_csv_cols) {
+  $0 = journals[j1][j2][j3]
+
+  if (!$col_to_idx["年末調整精算"]) {
+    return
+  }
+
+  output_csv_cols[_o("収支区分")]  = "支出"
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = $col_to_idx["支給月日"]
+  output_csv_cols[_o("取引先")]    = "日野税務署"
+  output_csv_cols[_o("勘定科目")]  = "預り金（従業員源泉徴収税）"
+  output_csv_cols[_o("税区分")]    = "対象外"
+  output_csv_cols[_o("金額")]      = $col_to_idx["年末調整精算"] * -1
+  output_csv_cols[_o("備考")]      = ""
+  output_csv_cols[_o("品目")]      = "06～11月"
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags_12($col_to_idx["支給月日"], j3)
+  print_output_csv_cols(output_csv_cols)
+}
+
 function remarks(j1, j3) {
   return ""
 }
@@ -301,3 +344,8 @@ function remarks(j1, j3) {
 function tags(j1, j3) {
   return DQ substr(j1,6,5) "支払" j3 ",import_給与" DQ
 }
+
+function tags_12(j1, j3) {
+  return DQ substr(j1,6,5) "支払" j3 ",年末調整精算,import_給与" DQ
+}
+
