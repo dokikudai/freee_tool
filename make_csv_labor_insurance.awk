@@ -52,7 +52,7 @@ function output_csv_owner_2(j1, j2, j3    , _amount, output_csv_cols) {
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = -1 * round_half_up(_amount[1] * 9 / 1000)
   output_csv_cols[_o("備考")]      = remarks(j1, j3)
-  output_csv_cols[_o("品目")]      = "労災保険（会社）"
+  output_csv_cols[_o("品目")]      = "労働保険（会社）"
   output_csv_cols[_o("部門")]      = get_depertment(j2)
   output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags(j1, j3)
   print_output_csv_cols(output_csv_cols)
