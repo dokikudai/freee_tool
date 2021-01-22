@@ -17,7 +17,8 @@ function set_nomal_journals(    j1, j2, j3) {
 function output_csv_owner(journals_j1, j1    , j2, j3) {
   for (j2 in journals_j1) {
     for (j3 in journals_j1[j2]) {
-      output_csv_owner_1(j1, j2, j3)
+      output_csv_owner_1_base_sal(j1, j2, j3)
+      output_csv_owner_1_bounus(j1, j2, j3)
       output_csv_owner_2(j1, j2, j3)
       output_csv_owner_3(j1, j2, j3)
       output_csv_owner_4(j1, j2, j3)
@@ -33,10 +34,10 @@ function output_csv_owner(journals_j1, j1    , j2, j3) {
   }
 }
 
-function output_csv_owner_1(j1, j2, j3    , output_csv_cols) {
+function output_csv_owner_1_base_sal(j1, j2, j3    , output_csv_cols) {
   $0 = journals[j1][j2][j3]
 
-  if (!get_salary_amount()) {
+  if (!$col_to_idx["基本給"]) {
     return
   }
 
@@ -46,23 +47,12 @@ function output_csv_owner_1(j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("取引先")]    = "従業員"
   output_csv_cols[_o("勘定科目")]  = get_sal_account($col_to_idx["従業員番号"])
   output_csv_cols[_o("税区分")]    = "対象外"
-  output_csv_cols[_o("金額")]      = get_salary_amount()
+  output_csv_cols[_o("金額")]      = $col_to_idx["基本給"]
   output_csv_cols[_o("備考")]      = ""
   output_csv_cols[_o("品目")]      = ""
   output_csv_cols[_o("部門")]      = get_depertment(j2)
   output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx["支給月日"], j3)
   print_output_csv_cols(output_csv_cols)
-}
-
-function get_salary_amount() {
-  if ($col_to_idx["種別"] == "給与") {
-    return $col_to_idx["基本給"]
-  }
-  if ($col_to_idx["種別"] == "賞与") {
-    return $col_to_idx["賞与"]
-  }
-  print "ERROR: #get_salary_amount" > "/dev/stderr"
-  exit 1
 }
 
 function get_sal_account(emp_no) {
@@ -71,6 +61,35 @@ function get_sal_account(emp_no) {
       return "役員報酬"
   }
   return "給料賃金"
+}
+
+function output_csv_owner_1_bounus(j1, j2, j3    , output_csv_cols) {
+  $0 = journals[j1][j2][j3]
+
+  if (!$col_to_idx["賞与"]) {
+    return
+  }
+
+  output_csv_cols[_o("収支区分")]  = "支出"
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = $col_to_idx["支給月日"]
+  output_csv_cols[_o("取引先")]    = "従業員"
+  output_csv_cols[_o("勘定科目")]  = get_bounus_sal_account($col_to_idx["従業員番号"])
+  output_csv_cols[_o("税区分")]    = "対象外"
+  output_csv_cols[_o("金額")]      = $col_to_idx["賞与"]
+  output_csv_cols[_o("備考")]      = ""
+  output_csv_cols[_o("品目")]      = ""
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx["支給月日"], j3)
+  print_output_csv_cols(output_csv_cols)
+}
+
+function get_bounus_sal_account(emp_no) {
+  # プロパティ的な設定として要改修
+  if (emp_no ~ /[12]/) {
+      return "役員賞与"
+  }
+  return "賞与"
 }
 
 function output_csv_owner_2(j1, j2, j3    , output_csv_cols) {
