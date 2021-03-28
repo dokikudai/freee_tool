@@ -36,7 +36,7 @@ function v_to_k_output_header_cols(    k) {
 $1 == "従業員番号" {
   # ヘッダーパターン
   # カスタム項目がある/なしのパターンを判別
-  ++hp
+  hp = $0
   create_conv_lib($0)
 }
 
