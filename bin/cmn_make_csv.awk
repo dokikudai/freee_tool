@@ -33,29 +33,11 @@ function v_to_k_output_header_cols(    k) {
 
 # 賃金台帳の項目名から index に変換の連想配列を作成
 # 例えば、 $col_to_idx["従業員名"] で $1 と同様の結果が得られる
-NR == 1 {
+$1 == "従業員番号" {
+  # ヘッダーパターン
+  # カスタム項目がある/なしのパターンを判別
+  ++hp
   create_conv_lib($0)
-}
-
-function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name) {
-  split(payroll_book_csv_header, p, ",")
-
-  PROCINFO["sorted_in"]="@ind_num_asc"
-  for (i in p) {
-    if ($i) {
-      col_to_idx[$i] = i
-      count[$i]++
-    } else {
-      print "不正なCSVヘッダー項目nullがありました。"
-      exit 1
-    }
-  }
-  for (column_name in count) {
-    if (count[column_name] > 1) {
-      print "賃金台帳のヘッダー項目に同名項目があり、計算齟齬が発生する場合があります。同名項目：" column_name
-      exit 1
-    }
-  }
 }
 
 END {
@@ -76,24 +58,13 @@ function print_header_csv(cols    , i, col, str_cols, count) {
   print str_cols
 }
 
-function print_data_csv(    j1, counter) {
-  PROCINFO["sorted_in"]="@ind_str_asc"
-  # journalsループ
-  for (j1 in journals) {
-    if (cmn_is_date(j1)) {
-      continue
-    }
-    output_csv_owner(journals[j1], j1)
-  }
-}
-
 function _o(col) {
   return _output_header_cols[col]
 }
 
 function output_csv_emplyee1_bp(c) {
   if (c) {
-    return "" 
+    return ""
   } else {
     return "支出"
   }
@@ -106,14 +77,6 @@ function pay_date(date) {
     return cmn_strftime_skip_holiday(yyyy "/07/10")
   } else {
     return cmn_strftime_skip_holiday(yyyy + 1 "/07/10")
-  }
-}
-
-function idx_to_col(idx) {
-  for (journal in col_to_idx) {
-    if (idx == col_to_idx[journal]) {
-      return journal
-    }
   }
 }
 

@@ -13,7 +13,7 @@ function cmn_emp_name() {
 # スクリプト実行時に awk に -v debug_lfg=1とすることで出力
 function cmn_debug_log(str) {
   if (v_debug_lfg) {
-    print "[DEBUG" "] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " str
+    print "[DEBUG" "] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " str > "/dev/stderr"
   }
 }
 

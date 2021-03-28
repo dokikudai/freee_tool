@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./common.sh
+source ./bin/common.sh
 
 touch_csv_file "insurance"
 
@@ -13,7 +13,7 @@ ls -1 ./${input_payroll_csv} \
         -v v_to=${ARG_T} \
         -v v_csv_list=${csv_list} \
         -F ',' \
-        -f cmn.awk \
+        -f ./bin/cmn.awk \
         -f cmn_insra.awk \
         -f insurance.awk \
         social_insurances/* \

@@ -96,8 +96,8 @@ do
       ;;
     *)
       if [[ $# -ge 1 ]] && [[ ! -z "$1" ]] && [[ ! "$1" =~ ^-+ ]]; then
-        #param=( ${param[@]} "$1" )
-        param+=( "$1" )
+        param=( ${param[@]} "$1" )
+        #param+=( "$1" )
         shift 1
       fi
       ;;

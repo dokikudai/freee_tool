@@ -3,10 +3,10 @@
 # 標準出力をファイル化する
 # freee 取引のインポート専用スクリプトのため微妙な気がしている
 #
-source ./common.sh
+source ./bin/common.sh
 
 output_path=
-save_file_name="labor_insurance"
+save_file_name="${param[0]}"
 
 awk -F',' \
 -v save_file_name="${save_file_name}" \

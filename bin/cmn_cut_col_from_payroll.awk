@@ -4,7 +4,7 @@ NR == 1 {
   create_conv_lib($0)
 }
 
-function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, idx) {
+function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, debug_idx) {
   split(payroll_book_csv_header, p, ",")
 
   PROCINFO["sorted_in"]="@ind_num_asc"
@@ -24,18 +24,20 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
       exit 1
     }
   }
-  cmn_lib_use_idx(v_use_idx)
+  cmn_lib_use_idx()
+
+  if (v_debug_lfg) {
+    for (debug_idx in use_idx) {
+      cmn_debug_log("cmn_cut_col_from_payroll.awk#create_conv_lib: use_idx = " use_idx[debug_idx])
+    }
+  }
 }
 
-function set_data(    i, d, count) {
-  if (cmn_is_date($col_to_idx["給与計算締日（固定給）"])) {
-    return
+function set_use_idx(col) {
+  cmn_debug_log("cmn_cut_col_from_payroll.awk#set_use_idx: col = " col)
+  if (col) {
+    use_idx[++idx] = col
   }
-  PROCINFO["sorted_in"]="@ind_num_asc"
-  for (i in use_idx) {
-    d = d csv_comma(count) $use_idx[i]
-  }
-  csv_data[++_set_data] = d
 }
 
 END {

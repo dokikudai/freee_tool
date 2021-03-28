@@ -78,10 +78,6 @@ ARGIND == ARGC - 1 && $5 == "給与" {
   set()
 }
 
-ARGIND == ARGC - 1 && $5 == "給与" && !year[substr($7, 1, 4)]++ {
-  cmn_holiday_api(substr($7, 1, 4))
-}
-
 END {
   # BOM
   printf "\xEF\xBB\xBF"
@@ -125,7 +121,7 @@ function set_social(remarks, value, account    , pay_date) {
   cmn_debug_log("set_social#remarks, value, account : " remarks ", " value ", " account)
   if (value) {
     entry_date = cmn_entry_strdate(remarks)
-    pay_date = cmn_pay_insur_strdate($7)
+    pay_date = cmn_strftime_skip_holiday($7)
     social[cmn_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }

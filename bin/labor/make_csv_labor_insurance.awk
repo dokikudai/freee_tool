@@ -14,6 +14,39 @@ function set_nomal_journals(    j1, j2, j3) {
   journals[j1][j2][j3] = $col_to_idx["総支給額"] "," $col_to_idx["雇用保険料"]
 }
 
+function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, debug_idx1, debug_idx2) {
+
+  split(payroll_book_csv_header, p, ",")
+
+  PROCINFO["sorted_in"]="@ind_num_asc"
+  for (i in p) {
+    if ($i) {
+      col_to_idx[$i] = i
+      count[$i]++
+    } else {
+      print "不正なCSVヘッダー項目nullがありました。"
+      exit 1
+    }
+  }
+  for (column_name in count) {
+    if (count[column_name] > 1) {
+      print "賃金台帳のヘッダー項目に同名項目があり、計算齟齬が発生する場合があります。同名項目：" column_name
+      exit 1
+    }
+  }
+}
+
+function print_data_csv(    j1, counter) {
+  PROCINFO["sorted_in"]="@ind_str_asc"
+  # journalsループ
+  for (j1 in journals) {
+    if (cmn_is_date(j1)) {
+      continue
+    }
+    output_csv_owner(journals[j1], j1)
+  }
+}
+
 function output_csv_owner(journals_j1, j1    , j2, j3) {
   for (j2 in journals_j1) {
     for (j3 in journals_j1[j2]) {
