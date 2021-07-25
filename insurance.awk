@@ -90,14 +90,70 @@ function v(value) {
 ARGIND == ARGC - 1 && !iii++ {
   # 賃金台帳.csvの1行目を読み込んだとき
   # print $0  > "/dev/stderr"
-  split_header()
+  if (($col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与") && $col_to_idx["社会保険料等控除合計"]) {
+    set_data()
+  }
 }
 
-function split_header(    s, i) {
-  split($0, s, ",")
-  print "" > "/dev/stderr"
-  for (i in s) {
-    print s[i] > "/dev/stderr"
+function cmn_lib_use_idx() {
+  set_use_idx(col_to_idx["従業員番号"])
+  set_use_idx(col_to_idx["種別"])
+  set_use_idx(col_to_idx["支給月日"])
+  set_use_idx(col_to_idx["給与計算締日（固定給）"])
+  set_use_idx(col_to_idx["生年月日"])
+  set_use_idx(col_to_idx["健康保険料"])
+  set_use_idx(col_to_idx["介護保険料"])
+  set_use_idx(col_to_idx["厚生年金保険料"])
+  set_use_idx(col_to_idx["社会保険料等控除合計"])
+  set_use_idx(col_to_idx["健康保険標準報酬月額"])
+  set_use_idx(col_to_idx["厚生年金保険標準報酬月額"])
+}
+
+function set_data(    i, d, count) {
+  if (cmn_is_date($col_to_idx["給与計算締日（固定給）"])) {
+    return
+  }
+  PROCINFO["sorted_in"]="@ind_num_asc"
+  for (i in use_idx) {
+    d = d csv_comma(count) $use_idx[i]
+  }
+  csv_data[++_set_data] = d
+}
+
+function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, debug_idx) {
+  split(payroll_book_csv_header, p, ",")
+
+  PROCINFO["sorted_in"]="@ind_num_asc"
+  for (i in p) {
+    print p[i]  > "/dev/stderr"
+    if ($i) {
+      col_to_idx[$i] = i
+      idx_to_col[i] = $i
+      count[$i]++
+    } else {
+      print i, p[i], "不正なCSVヘッダー項目nullがありました。"
+      exit 1
+    }
+  }
+  for (column_name in count) {
+    if (count[column_name] > 1 && column_name != "\"\"") {
+      print "賃金台帳のヘッダー項目に同名項目があり、計算齟齬が発生する場合があります。同名項目：" column_name
+      exit 1
+    }
+  }
+  cmn_lib_use_idx()
+
+  if (v_debug_lfg) {
+    for (debug_idx in use_idx) {
+      cmn_debug_log("cmn_cut_col_from_payroll.awk#create_conv_lib: use_idx, col = " use_idx[debug_idx] ", " debug_idx)
+    }
+  }
+}
+
+function set_use_idx(col) {
+  cmn_debug_log("cmn_cut_col_from_payroll.awk#set_use_idx: col = " col)
+  if (col) {
+    use_idx[++idx] = col
   }
 }
 
