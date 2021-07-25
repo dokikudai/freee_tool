@@ -89,6 +89,7 @@ function print_output_csv_cols(output_csv_cols    , i, col, str_cols, count) {
       col = csv_comma(count)
     }
     str_cols = str_cols col
+    cmn_debug_log("cmn_make_csv.awk aaa: " str_cols)
   }
   print str_cols
 }

@@ -60,14 +60,17 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name) 
 }
 
 $col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与" {
-  set_tax_journals()
+  set_tax_journals(col_to_idx["所得税"])
+}
+$col_to_idx["種別"] == "給与" && $col_to_idx["年末調整精算"] {
+  set_tax_journals(col_to_idx["年末調整精算"])
 }
 
-function set_tax_journals(    j1, j2, j3) {
+function set_tax_journals(_col_to_idx    , j1, j2) {
   j1 = entry_date()
   j2 = work_in[$col_to_idx["従業員番号"]]
-  j3 = col_to_idx["所得税"]
-  journals[j1][j2][j3] += $col_to_idx["所得税"]
+  j3 = _col_to_idx
+  journals[j1][j2][col_to_idx["所得税"]] += $_col_to_idx
 }
 
 # 納期の特例支払期限
@@ -80,10 +83,6 @@ function entry_date(    yyyy, mm) {
   } else {
     return yyyy "/07/01"
   }
-}
-
-$col_to_idx["種別"] == "給与" && $col_to_idx["年末調整精算"] {
-  set_nomal_journals()
 }
 
 function set_nomal_journals(    j1, j2, j3) {

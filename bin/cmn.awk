@@ -198,7 +198,7 @@ function _init_api_other_holiday(year    , _holiday, i, _h) {
     exit 1
   }
 
-  cmn_debug_log("---------------- cmn#_init_api_other_holiday curl api ----------------" ++__init_api_other_holiday)
+  cmn_debug_log("---------------- cmn#_init_api_other_holiday curl api ----------------" ++__init_api_other_holiday_)
 
   print "curl -s https://holidays-jp.github.io/api/v1/" year "/datetime.csv | awk -F, " SQ "{print $1}" SQ |& "bash"
   close("bash", "to")
