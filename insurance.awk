@@ -31,7 +31,13 @@ FILENAME == "social_insurances/r2ippan3.csv.tmp" {
   set_lib_si(mktime("2020 03 01 00 00 00"), mktime("2020 04 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan4.csv.tmp" {
-  set_lib_si(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+  set_lib_si(mktime("2020 04 01 00 00 00"), mktime("2021 09 01 00 00 00"))
+}
+FILENAME == "social_insurances/r2ippan9.csv.tmp" {
+  set_lib_si(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r3ippan3.csv.tmp" {
+  set_lib_si(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
 }
 function set_lib_si(start_date, end_date) {
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_ALL_lt40]  =$3
@@ -62,7 +68,15 @@ FILENAME == "social_insurances/r2ippan3.csv" && $1 ~ /この子ども・子育�
 }
 FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   cmn_debug_log("social_insurances/h310402.csv : " $1)
-  set_lib_si_child(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+  set_lib_si_child(mktime("2020 04 01 00 00 00"), mktime("2021 09 01 00 00 00"))
+}
+FILENAME == "social_insurances/r2ippan9.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r3ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  cmn_debug_log("social_insurances/h310402.csv : " $1)
+  set_lib_si_child(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
 }
 function set_lib_si_child(start_date, end_date) {
   cmn_debug_log("#set_lib_si_child, v($1)=" v($1))
@@ -71,6 +85,20 @@ function set_lib_si_child(start_date, end_date) {
 function v(value) {
   gsub(/[^0-9\.]*/, "", value)
   return value
+}
+
+ARGIND == ARGC - 1 && !iii++ {
+  # 賃金台帳.csvの1行目を読み込んだとき
+  # print $0  > "/dev/stderr"
+  split_header()
+}
+
+function split_header(    s, i) {
+  split($0, s, ",")
+  print "" > "/dev/stderr"
+  for (i in s) {
+    print s[i] > "/dev/stderr"
+  }
 }
 
 ARGIND == ARGC - 1 && $5 == "給与" {
