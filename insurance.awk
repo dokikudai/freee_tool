@@ -90,6 +90,7 @@ function v(value) {
 ARGIND == ARGC - 1 && !iii++ {
   # 賃金台帳.csvの1行目を読み込んだとき
   # print $0  > "/dev/stderr"
+  create_conv_lib($0)
   if (($col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与") && $col_to_idx["社会保険料等控除合計"]) {
     set_data()
   }
@@ -123,9 +124,10 @@ function set_data(    i, d, count) {
 function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, debug_idx) {
   split(payroll_book_csv_header, p, ",")
 
+  #print ""  > "/dev/stderr"
   PROCINFO["sorted_in"]="@ind_num_asc"
   for (i in p) {
-    print p[i]  > "/dev/stderr"
+    #print p[i]  > "/dev/stderr"
     if ($i) {
       col_to_idx[$i] = i
       idx_to_col[i] = $i
