@@ -109,7 +109,7 @@ function cmn_age(    entry_date, from, to) {
   # 年齢
   # https://xtech.nikkei.com/it/article/Watcher/20070822/280097/
   from = strftime("%Y%m%d", entry_date)
-  to = strftime("%Y%m%d", (mktime(gensub("/", " ", "g", $4) " 00 00 00") - (24 * 60 * 60)))
+  to = strftime("%Y%m%d", (mktime(gensub("/", " ", "g", $col_to_idx["生年月日"]) " 00 00 00") - (24 * 60 * 60)))
   age = int((from - to) / 10000)
   cmn_debug_log("age = " age)
   return age

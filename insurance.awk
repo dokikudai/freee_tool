@@ -171,7 +171,7 @@ END {
 }
 
 function set(    insmap) {
-  entry_date = cmn_to_mktime($9)
+  entry_date = cmn_to_mktime($col_to_idx["給与計算締日（固定給）"])
   use_lib_si(entry_date, insmap)
 
   for (remarks in insmap) {
