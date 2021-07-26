@@ -31,7 +31,7 @@ FILENAME == "social_insurances/r2ippan3.csv.tmp" {
   set_lib_si(mktime("2020 03 01 00 00 00"), mktime("2020 04 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan4.csv.tmp" {
-  set_lib_si(mktime("2020 04 01 00 00 00"), mktime("2021 09 01 00 00 00"))
+  set_lib_si(mktime("2020 04 01 00 00 00"), mktime("2020 09 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan9.csv.tmp" {
   set_lib_si(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
@@ -51,31 +51,24 @@ function set_lib_si(start_date, end_date) {
 # 保険料率マスタ作成（子ども・子育て拠出金率追加）
 #
 FILENAME == "social_insurances/h30ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h30ippan4.csv : " $1)
   set_lib_si_child(mktime("2018 04 01 00 00 00"), mktime("2019 03 01 00 00 00"))
 }
 FILENAME == "social_insurances/h31ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h31ippan3.csv : " $1)
   set_lib_si_child(mktime("2019 03 01 00 00 00"), mktime("2019 04 01 00 00 00"))
 }
 FILENAME == "social_insurances/h310402.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child(mktime("2019 04 01 00 00 00"), mktime("2020 03 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child(mktime("2020 03 01 00 00 00"), mktime("2020 04 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h310402.csv : " $1)
-  set_lib_si_child(mktime("2020 04 01 00 00 00"), mktime("2021 09 01 00 00 00"))
+  set_lib_si_child(mktime("2020 04 01 00 00 00"), mktime("2020 09 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan9.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
 FILENAME == "social_insurances/r3ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
-  cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
 }
 function set_lib_si_child(start_date, end_date) {
@@ -91,35 +84,21 @@ ARGIND == ARGC - 1 && !iii++ {
   # 賃金台帳.csvの1行目を読み込んだとき
   # print $0  > "/dev/stderr"
   create_conv_lib($0)
-  if (($col_to_idx["種別"] == "給与" || $col_to_idx["種別"] == "賞与") && $col_to_idx["社会保険料等控除合計"]) {
-    set_data()
-  }
 }
 
-function cmn_lib_use_idx() {
-  set_use_idx(col_to_idx["従業員番号"])
-  set_use_idx(col_to_idx["種別"])
-  set_use_idx(col_to_idx["支給月日"])
-  set_use_idx(col_to_idx["給与計算締日（固定給）"])
-  set_use_idx(col_to_idx["生年月日"])
-  set_use_idx(col_to_idx["健康保険料"])
-  set_use_idx(col_to_idx["介護保険料"])
-  set_use_idx(col_to_idx["厚生年金保険料"])
-  set_use_idx(col_to_idx["社会保険料等控除合計"])
-  set_use_idx(col_to_idx["健康保険標準報酬月額"])
-  set_use_idx(col_to_idx["厚生年金保険標準報酬月額"])
-}
-
-function set_data(    i, d, count) {
-  if (cmn_is_date($col_to_idx["給与計算締日（固定給）"])) {
-    return
-  }
-  PROCINFO["sorted_in"]="@ind_num_asc"
-  for (i in use_idx) {
-    d = d csv_comma(count) $use_idx[i]
-  }
-  csv_data[++_set_data] = d
-}
+# 利用項目
+# col_to_idx["従業員名"]
+# col_to_idx["従業員番号"]
+# col_to_idx["種別"]
+# col_to_idx["支給月日"]
+# col_to_idx["給与計算締日（固定給）"]
+# col_to_idx["生年月日"]
+# col_to_idx["健康保険料"]
+# col_to_idx["介護保険料"]
+# col_to_idx["厚生年金保険料"]
+# col_to_idx["社会保険料等控除合計"]
+# col_to_idx["健康保険標準報酬月額"]
+# col_to_idx["厚生年金保険標準報酬月額"]
 
 function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, debug_idx) {
   split(payroll_book_csv_header, p, ",")
@@ -130,6 +109,7 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
     #print p[i]  > "/dev/stderr"
     if ($i) {
       col_to_idx[$i] = i
+      # print col_to_idx[$i] ", " $i  > "/dev/stderr"
       idx_to_col[i] = $i
       count[$i]++
     } else {
@@ -143,7 +123,6 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
       exit 1
     }
   }
-  cmn_lib_use_idx()
 
   if (v_debug_lfg) {
     for (debug_idx in use_idx) {
@@ -152,20 +131,15 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
   }
 }
 
-function set_use_idx(col) {
-  cmn_debug_log("cmn_cut_col_from_payroll.awk#set_use_idx: col = " col)
-  if (col) {
-    use_idx[++idx] = col
-  }
-}
-
-ARGIND == ARGC - 1 && $5 == "給与" {
-  cmn_debug_log("$5 == \"給与\"")
+# ARGIND（現在処理しているオプション以外の引数）
+# ARGC - 1（コマンドを1, オプション以外の引数：ファイル数）
+# ARGIND == ARGC - 1 で賃金台帳ファイルのときの条件となる
+ARGIND == ARGC - 1 && $col_to_idx["種別"] == "給与" {
   set()
 }
 
-ARGIND == ARGC - 1 && $5 == "給与" && !year[substr($7, 1, 4)]++ {
-  cmn_holiday_api(substr($7, 1, 4))
+ARGIND == ARGC - 1 && $col_to_idx["種別"] == "給与" && !year[substr($col_to_idx["支給月日"], 1, 4)]++ {
+  cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
 }
 
 END {
@@ -211,8 +185,8 @@ function set_social(remarks, value, account    , pay_date) {
   cmn_debug_log("set_social#remarks, value, account : " remarks ", " value ", " account)
   if (value) {
     entry_date = cmn_entry_strdate(remarks)
-    pay_date = cmn_pay_insur_strdate($7)
-    social[cmn_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    pay_date = cmn_pay_insur_strdate($col_to_idx["支給月日"])
+    social[cmn_entry_strdate()][entry_date][pay_date][$col_to_idx["従業員番号"]][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
@@ -273,8 +247,8 @@ function get_plan3(lib_si, age, stat) {
 }
 
 function calc_child_care(start_date, end_date,    i) {
-  cmn_debug_log("#calc_child_care,  $77=" $77)
-  i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $77
+  cmn_debug_log("#calc_child_care,  $col_to_idx[\"健康保険標準報酬月額\"]=" $col_to_idx["健康保険標準報酬月額"])
+  i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $col_to_idx["健康保険標準報酬月額"]
   cmn_debug_log("#calc_child_care, lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE]=" lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE])
   return int(cmn_bigdecimal(i))
 }

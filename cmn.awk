@@ -4,7 +4,7 @@ BEGIN {
 
 # 賃金台帳の従業員名からスペースを除く
 function cmn_emp_name() {
-  return gensub(/[ 　]/, "", "g", $1)
+  return gensub(/[ 　]/, "", "g", $col_to_idx["従業員名"])
 }
 
 # デバッグ用出力ログ
@@ -31,14 +31,14 @@ function cmn_entry_strdate(remarks,    lib_employee) {
   lib_employee["介護保険料（従業員）"]
 
   if (remarks in lib_employee) {
-    return cmn_pay_insur_strdate($7)
+    return cmn_pay_insur_strdate($col_to_idx["支給月日"])
   }
-  return strftime("%Y/%m/%d", cmn_to_mktime($9))
+  return strftime("%Y/%m/%d", cmn_to_mktime($col_to_idx["給与計算締日（固定給）"]))
 }
 
 # 給与支払日をstrftimeする
 function cmn_pay_strdate() {
-  return strftime("%Y/%m/%d", cmn_to_mktime($7))
+  return strftime("%Y/%m/%d", cmn_to_mktime($col_to_idx["支給月日"]))
 }
 
 # 社会保険料支払い日をstrftimeする
@@ -59,7 +59,7 @@ function cmn_pay_insur_strdate(yyyymmdd,    _day, _mk) {
 
 # ボーナスの計算締日をmktimeする
 function cmn_bounus_entry_date(    d1, d2) {
-  d1 = strftime("%Y %m 01", cmn_to_mktime($7))
+  d1 = strftime("%Y %m 01", cmn_to_mktime($col_to_idx["支給月日"]))
   cmn_debug_log("cmn#strftime(\"%Y %m 01\", d2) : " d1)
   d2 = mktime(d1 " 00 00 00") - 1
   cmn_debug_log("cmn#mktime(d1 \" 00 00 00\") : " d2)
@@ -86,7 +86,7 @@ function cmn_bounus_entry_strdate(remarks,    d) {
 # リファクタリングしたい
 # ボーナスの社会保険料精算日をstrftimeする
 function cmn_bounus_insura_settle_date(    d1, d2, d3) {
-  d1 = strftime("%Y %m %d", cmn_to_mktime($7))
+  d1 = strftime("%Y %m %d", cmn_to_mktime($col_to_idx["支給月日"]))
   cmn_debug_log("cmn#strftime(\"%Y %m 01\", d2) : " d1)
   d2 = mktime(d1 " 23 59 59") + 1
   # 1ヶ月以上プラス
@@ -100,11 +100,11 @@ function cmn_bounus_insura_settle_date(    d1, d2, d3) {
 
 # 介護保険料の計算に必要な年齢を計算
 function cmn_age(    entry_date, from, to) {
-  if ($5 == "給与") {
-    entry_date = cmn_to_mktime($9)
+  if ($col_to_idx["種別"] == "給与") {
+    entry_date = cmn_to_mktime($col_to_idx["給与計算締日（固定給）"])
   }
-  if ($5 == "賞与") {
-    entry_date = cmn_to_mktime($7)
+  if ($col_to_idx["種別"] == "賞与") {
+    entry_date = cmn_to_mktime($col_to_idx["支給月日"])
   }
   # 年齢
   # https://xtech.nikkei.com/it/article/Watcher/20070822/280097/
@@ -127,7 +127,8 @@ function cmn_roundoff(value, stat) {
 function cmn_get_val(lib_si, insurance_name,    _i,_j){
   for (_i in lib_si) {
     for (_j in lib_si[_i]) {
-      if ($77 >= _i+0 && $77 < _j+0) {
+      # このifバグの温床かも。厚生年金、子ども・子育て拠出金のときに
+      if ($col_to_idx["健康保険標準報酬月額"] >= _i+0 && $col_to_idx["健康保険標準報酬月額"] < _j+0) {
         return lib_si[_i][_j][insurance_name]
       }
     }
