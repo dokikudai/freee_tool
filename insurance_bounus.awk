@@ -6,8 +6,19 @@ BEGIN {
   CHILD_CARE_PERCENTAGE             = "子ども・子育て拠出金率"
 
   MAX_MONTH_BOUNUS_OR_CHILD_MOUNT   = 1500000
+
+
+  # 出力CSVのHEADER
+  OUT_CSV_HEADER = "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
+  split(OUT_CSV_HEADER, oc_headers, ",")
+  create_col_to_header(oc_headers)
 }
 
+function create_col_to_header(oc_headers    , i) {
+  for (i in oc_headers) {
+    col_to_header[oc_headers[i]] = i
+  }
+}
 
 # 保険料率マスタ作成
 #
@@ -29,10 +40,18 @@ FILENAME == "social_insurances/r2ippan4.csv" && FNR == 11 {
   cmn_debug_log("social_insurances/r2ippan4.csv")
   set_lib_si_bounus(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r2ippan9.csv.tmp" {
+  set_lib_si_bounus(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r3ippan3.csv.tmp" {
+  set_lib_si_bounus(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
+}
 function set_lib_si_bounus(start_date, end_date,    i) {
   cmn_debug_log("$0 = " $0)
-  cmn_debug_log("$6 $8 $10 = " $6" "$8" "$10)
-  cmn_debug_log("v($6) v($8) v($10) = " v($6)" "v($8)" "v($10))
+  # r2ippan4.csv から読み込んだ値を代入
+  cmn_debug_log("lib_si_bounus[start_date][end_date][HEALTH_INSURANCE_PERCENTAGE_lt40] v($6) = " v($6))
+  cmn_debug_log("lib_si_bounus[start_date][end_date][HEALTH_INSURANCE_PERCENTAGE_ge40] v($8) = " v($8))
+  cmn_debug_log("lib_si_bounus[start_date][end_date][WELFARE_PENSION_PERCENTAGE] v($10) = " v($10))
   lib_si_bounus[start_date][end_date][HEALTH_INSURANCE_PERCENTAGE_lt40] = v($6)
   lib_si_bounus[start_date][end_date][HEALTH_INSURANCE_PERCENTAGE_ge40] = v($8)
   lib_si_bounus[start_date][end_date][WELFARE_PENSION_PERCENTAGE]       = v($10)
@@ -65,18 +84,74 @@ FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育�
   cmn_debug_log("social_insurances/h310402.csv : " $1)
   set_lib_si_child_bounus(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
-function set_lib_si_child_bounus(start_date, end_date) {
-  lib_si_bounus[start_date][end_date][CHILD_CARE_PERCENTAGE] = v($1)
+FILENAME == "social_insurances/r2ippan9.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  set_lib_si_child_bounus(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r3ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  set_lib_si_child_bounus(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
+}
+
+function set_lib_si_child_bounus(start_date, end_date) {
+  lib_si_child_bounus[start_date][end_date][CHILD_CARE_PERCENTAGE] = v($1)
+}
+
+
+ARGIND == ARGC - 1 && !iii++ {
+  # 賃金台帳.csvの1行目を読み込んだとき
+  # print $0  > "/dev/stderr"
+  create_conv_lib($0)
+}
+
+
+# col_to_idx 作成
+function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, debug_idx) {
+  split(payroll_book_csv_header, p, ",")
+
+  #print ""  > "/dev/stderr"
+  PROCINFO["sorted_in"]="@ind_num_asc"
+  for (i in p) {
+    #print p[i]  > "/dev/stderr"
+    if ($i) {
+      col_to_idx[$i] = i
+      print col_to_idx[$i] ", " $i  > "/dev/stderr"
+      idx_to_col[i] = $i
+      count[$i]++
+    } else {
+      print i, p[i], "不正なCSVヘッダー項目nullがありました。"
+      exit 1
+    }
+  }
+  for (column_name in count) {
+    if (count[column_name] > 1 && column_name != "\"\"") {
+      print "賃金台帳のヘッダー項目に同名項目があり、計算齟齬が発生する場合があります。同名項目：" column_name
+      exit 1
+    }
+  }
+
+  if (v_debug_lfg) {
+    for (debug_idx in use_idx) {
+      cmn_debug_log("cmn_cut_col_from_payroll.awk#create_conv_lib: use_idx, col = " use_idx[debug_idx] ", " debug_idx)
+    }
+  }
+}
+
 
 # メイン
 #
-ARGIND == ARGC - 1 && $5 == "賞与" && $41 {
+ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"] {
   set_bounus()
 }
 
-ARGIND == ARGC - 1 && $5 == "賞与" && $41 && !year[substr($7, 1, 4)]++ {
-  cmn_holiday_api(substr($7, 1, 4))
+ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"] && !year[substr($col_to_idx["支給月日"], 1, 4)]++ {
+  cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
+}
+
+
+function print_out_csv(    i) {
+  PROCINFO["sorted_in"]="@ind_num_asc"
+  for (i in col_to_header) {
+    printf i
+  }
 }
 
 END {
@@ -87,6 +162,8 @@ END {
   print "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
 
   for (day_base in social_bounus) {
+    cmn_debug_log("aaaaaaaaaaaaaaaaa day_base:" day_base)
+    exit(1)
     if (cmn_is_date(day_base)) {
       continue
     }
@@ -108,7 +185,8 @@ END {
 
 function set_bounus(    insmap_bonus) {
   cmn_debug_log("set_bounus")
-  use_lib_si_bounus(insmap_bonus)
+  use_lib_si_bounus(entry_date, insmap_bonus)
+
   for (remarks in insmap_bonus) {
     for (account in insmap_bonus[remarks]) {
       set_social_bounus(remarks, insmap_bonus[remarks][account], account)
@@ -120,11 +198,11 @@ function calc_bounus(value) {
   return int(value / 1000) * 1000
 }
 
-function set_social_bounus(remarks, value, account) {
+function set_social_bounus(remarks, value, account    , pay_date) {
   if (value) {
     entry_date = cmn_bounus_entry_strdate(remarks)
     pay_date = cmn_bounus_insura_settle_date()
-    social_bounus[cmn_bounus_entry_strdate()][entry_date][pay_date][$2][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social_bounus[cmn_bounus_entry_strdate()][entry_date][pay_date][$col_to_idx["従業員番号"]][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
@@ -135,6 +213,7 @@ function calc_health_insurance(lib_si, age, stat,    i) {
   cmn_insra_chk_health(stat, mount)
   return mount
 }
+
 function get_age_val_bounus(lib_si_bounus, age,    i) {
   if (age > 39) {
     cmn_debug_log("lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_ge40] = "lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_ge40])
@@ -197,10 +276,9 @@ function calc_welfare_pension(lib_si_bounus, stat,    i) {
 }
 
 function calc_child_care(lib_si_bounus,    i) {
-  if ($41 > MAX_MONTH_BOUNUS_OR_CHILD_MOUNT) {
-    $41 = MAX_MONTH_BOUNUS_OR_CHILD_MOUNT
+  if ($col_to_idx["賞与"] > MAX_MONTH_BOUNUS_OR_CHILD_MOUNT) {
+    $col_to_idx["賞与"] = MAX_MONTH_BOUNUS_OR_CHILD_MOUNT
   }
-  i = (lib_si_bounus[CHILD_CARE_PERCENTAGE] / 100) * calc_bounus($41)
-  cmn_debug_log("(lib_si_bounus[CHILD_CARE_PERCENTAGE] / 100) * calc_bounus($41) = " i)
+  i = (lib_si_child_bounus[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * calc_bounus($col_to_idx["賞与"])
   return int(cmn_bigdecimal(i))
 }

@@ -11,7 +11,7 @@ function cmn_emp_name() {
 # スクリプト実行時に awk に -v debug_lfg=1とすることで出力
 function cmn_debug_log(str) {
   if (v_debug_lfg) {
-    print "[DEBUG" "] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " str
+    print "[DEBUG" "] " strftime("%Y/%m/%d %H:%M:%S", systime()) " " str > "/dev/stderr"
   }
 }
 
@@ -174,7 +174,9 @@ function cmn_holiday_api(year    , i) {
     exit 1
   }
 
-  print "(curl -s https://holidays-jp.github.io/api/v1/" year "/datetime.csv && curl -s https://holidays-jp.github.io/api/v1/" year + 1 "/datetime.csv) | awk -F, '\''{print $1}'\''" |& "bash"
+  command_awk = "awk -F, '{print $1}'"
+
+  print "(curl -s https://holidays-jp.github.io/api/v1/" year "/datetime.csv && curl -s https://holidays-jp.github.io/api/v1/" year + 1 "/datetime.csv) | " command_awk |& "bash"
   close("bash", "to")
   while(("bash" |& getline _v_line) > 0) {
     holiday[_v_line]
