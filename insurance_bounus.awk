@@ -144,14 +144,16 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
 }
 
 
+# 払込が祝祭日のときは翌日営業日APIを起動
+ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"] && !year[substr($col_to_idx["支給月日"], 1, 4)]++ {
+  cmn_debug_log("cmn_holiday_api")
+  cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
+}
+
 # メイン
 #
 ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"] {
   set_bounus()
-}
-
-ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"] && !year[substr($col_to_idx["支給月日"], 1, 4)]++ {
-  cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
 }
 
 function print_csv_date(    day_base, day_sal, day_settlement, employee, remarks, i_idx) {

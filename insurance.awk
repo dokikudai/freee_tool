@@ -131,15 +131,16 @@ function create_conv_lib(payroll_book_csv_header    , p, i, count, column_name, 
   }
 }
 
+# 払込が祝祭日のときは翌日営業日APIを起動
+ARGIND == ARGC - 1 && $col_to_idx["種別"] == "給与" && !year[substr($col_to_idx["支給月日"], 1, 4)]++ {
+  cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
+}
+
 # ARGIND（現在処理しているオプション以外の引数）
 # ARGC - 1（コマンドを1, オプション以外の引数：ファイル数）
 # ARGIND == ARGC - 1 で賃金台帳ファイルのときの条件となる
 ARGIND == ARGC - 1 && $col_to_idx["種別"] == "給与" {
   set()
-}
-
-ARGIND == ARGC - 1 && $col_to_idx["種別"] == "給与" && !year[substr($col_to_idx["支給月日"], 1, 4)]++ {
-  cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
 }
 
 END {
