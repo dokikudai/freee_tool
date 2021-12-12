@@ -45,7 +45,7 @@ FILENAME == "social_insurances/r2ippan3.csv" && FNR == 11 {
 }
 FILENAME == "social_insurances/r2ippan4.csv" && FNR == 11 {
   cmn_debug_log("social_insurances/r2ippan4.csv")
-  set_lib_si_bounus(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+  set_lib_si_bounus(mktime("2020 04 01 00 00 00"), mktime("2020 09 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan9.csv" && FNR == 11 {
   set_lib_si_bounus(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
@@ -89,7 +89,7 @@ FILENAME == "social_insurances/r2ippan3.csv" && $1 ~ /この子ども・子育�
 }
 FILENAME == "social_insurances/r2ippan4.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   cmn_debug_log("social_insurances/h310402.csv : " $1)
-  set_lib_si_child_bounus(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
+  set_lib_si_child_bounus(mktime("2020 04 01 00 00 00"), mktime("2020 09 01 00 00 00"))
 }
 FILENAME == "social_insurances/r2ippan9.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   set_lib_si_child_bounus(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
@@ -159,11 +159,7 @@ END {
 
   print_csv_header()
 
-
-
   for (day_base in social_bounus) {
-    cmn_debug_log("set_bounuaaaaaaaaaaaaaaaaaas")
-    exit(1)
     if (cmn_is_date(day_base)) {
       continue
     }
@@ -187,9 +183,6 @@ function set_bounus(    insmap_bonus) {
   use_lib_si_bounus(insmap_bonus)
 
   for (remarks in insmap_bonus) {
-      cmn_debug_log("bbbbbbbbbbbbbbbbbb")
-  exit(1)
-
     for (account in insmap_bonus[remarks]) {
       set_social_bounus(remarks, insmap_bonus[remarks][account], account)
     }
@@ -220,12 +213,12 @@ function get_age_val_bounus(lib_si_bounus, age,    i) {
   if (age > 39) {
     cmn_debug_log("lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_ge40] = "lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_ge40])
     cmn_debug_log("lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_lt40] = "lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_lt40])
-    i = (lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_ge40] / 100) * calc_bounus($41)
+    i = (lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_ge40] / 100) * calc_bounus($col_to_idx["賞与"])
     cmn_debug_log("i = " i)
     cmn_debug_log("cmn_bigdecimal(i) = " cmn_bigdecimal(i))
     return cmn_bigdecimal(i / 2)
   } else {
-    i = (lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_lt40] / 100) * calc_bounus($41)
+    i = (lib_si_bounus[HEALTH_INSURANCE_PERCENTAGE_lt40] / 100) * calc_bounus($col_to_idx["賞与"])
     return cmn_bigdecimal(i / 2)
   }
 }
@@ -269,10 +262,10 @@ function use_lib_si_bounus(insmap_bonus,    start_date, end_date, age) {
 }
 
 function calc_welfare_pension(lib_si_bounus, stat,    i) {
-  if ($41 > MAX_MONTH_BOUNUS_OR_CHILD_MOUNT) {
-    $41 = MAX_MONTH_BOUNUS_OR_CHILD_MOUNT
+  if ($col_to_idx["賞与"] > MAX_MONTH_BOUNUS_OR_CHILD_MOUNT) {
+    $col_to_idx["賞与"] = MAX_MONTH_BOUNUS_OR_CHILD_MOUNT
   }
-  i = (lib_si_bounus[WELFARE_PENSION_PERCENTAGE] / 100) * calc_bounus($41)
+  i = (lib_si_bounus[WELFARE_PENSION_PERCENTAGE] / 100) * calc_bounus($col_to_idx["賞与"])
   mount = cmn_roundoff(cmn_bigdecimal(i / 2), stat)
   cmn_insra_chk_welfare(stat, mount)
   return mount
