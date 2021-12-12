@@ -197,3 +197,9 @@ function cmn_holiday_api(year    , i) {
     }
   }
 }
+
+function csv_comma(count) {
+  if (count["one"]++) {
+    return ","
+  }
+}

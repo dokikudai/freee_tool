@@ -20,6 +20,13 @@ function create_col_to_header(oc_headers    , i) {
   }
 }
 
+function print_csv_header(    col_name, count) {
+  PROCINFO["sorted_in"]="@val_num_asc"
+  for (col_name in col_to_header) {
+      printf csv_comma(count) col_name
+  }
+}
+
 # 保険料率マスタ作成
 #
 FILENAME == "social_insurances/h30ippan4.csv" && FNR == 11 {
@@ -40,10 +47,10 @@ FILENAME == "social_insurances/r2ippan4.csv" && FNR == 11 {
   cmn_debug_log("social_insurances/r2ippan4.csv")
   set_lib_si_bounus(mktime("2020 04 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
-FILENAME == "social_insurances/r2ippan9.csv.tmp" {
+FILENAME == "social_insurances/r2ippan9.csv" && FNR == 11 {
   set_lib_si_bounus(mktime("2020 09 01 00 00 00"), mktime("2021 03 01 00 00 00"))
 }
-FILENAME == "social_insurances/r3ippan3.csv.tmp" {
+FILENAME == "social_insurances/r3ippan3.csv" && FNR == 11 {
   set_lib_si_bounus(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
 }
 function set_lib_si_bounus(start_date, end_date,    i) {
@@ -146,23 +153,16 @@ ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"]
   cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
 }
 
-
-function print_out_csv(    i) {
-  PROCINFO["sorted_in"]="@ind_num_asc"
-  for (i in col_to_header) {
-    printf i
-  }
-}
-
 END {
   # BOM
   printf "\xEF\xBB\xBF"
 
-  # HEAD
-  print "収支区分,管理番号,発生日,決済期日,取引先コード,取引先,勘定科目,税区分,金額,税計算区分,税額,備考,品目,部門,メモタグ（複数指定可、カンマ区切り）,セグメント1,セグメント2,セグメント3,決済日,決済口座,決済金額"
+  print_csv_header()
+
+
 
   for (day_base in social_bounus) {
-    cmn_debug_log("aaaaaaaaaaaaaaaaa day_base:" day_base)
+    cmn_debug_log("set_bounuaaaaaaaaaaaaaaaaaas")
     exit(1)
     if (cmn_is_date(day_base)) {
       continue
@@ -184,10 +184,12 @@ END {
 }
 
 function set_bounus(    insmap_bonus) {
-  cmn_debug_log("set_bounus")
-  use_lib_si_bounus(entry_date, insmap_bonus)
+  use_lib_si_bounus(insmap_bonus)
 
   for (remarks in insmap_bonus) {
+      cmn_debug_log("bbbbbbbbbbbbbbbbbb")
+  exit(1)
+
     for (account in insmap_bonus[remarks]) {
       set_social_bounus(remarks, insmap_bonus[remarks][account], account)
     }
@@ -245,11 +247,12 @@ function get_kaigo_insur_bounus(lib_si_bounus, age,    i) {
 }
 
 function use_lib_si_bounus(insmap_bonus,    start_date, end_date, age) {
-  pay_month = cmn_to_mktime($7)
+  pay_month = cmn_to_mktime($col_to_idx["支給月日"])
   age = cmn_age()
+
   for (start_date in lib_si_bounus) {
     for (end_date in lib_si_bounus[start_date]) {
-      cmn_debug_log("use_lib_si_bounus,= " start_date ", end_date = " end_date ", pay_month = " pay_month)
+      cmn_debug_log("use_lib_si_bounus: start_date = " start_date ", end_date = " end_date ", pay_month = " pay_month)
       if (pay_month >= start_date && pay_month < end_date) {
         insmap_bonus["健康保険料（従業員）"]["預り金（社会保険）"]             = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "employee")
         insmap_bonus["健康保険料（会社）"]["法定福利費"]           = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "owner")
