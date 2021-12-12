@@ -25,6 +25,7 @@ function print_csv_header(    col_name, count) {
   for (col_name in col_to_header) {
       printf csv_comma(count) col_name
   }
+  print ""
 }
 
 # 保険料率マスタ作成
@@ -153,12 +154,7 @@ ARGIND == ARGC - 1 && $col_to_idx["種別"] == "賞与" && $col_to_idx["賞与"]
   cmn_holiday_api(substr($col_to_idx["支給月日"], 1, 4))
 }
 
-END {
-  # BOM
-  printf "\xEF\xBB\xBF"
-
-  print_csv_header()
-
+function print_csv_date(    day_base, day_sal, day_settlement, employee, remarks, i_idx) {
   for (day_base in social_bounus) {
     if (cmn_is_date(day_base)) {
       continue
@@ -166,17 +162,26 @@ END {
     for (day_sal in social_bounus[day_base]) {
       for (day_settlement in social_bounus[day_base][day_sal]) {
         for (employee in social_bounus[day_base][day_sal][day_settlement]) {
-          i=0
-          if (!i++) {
+          i_idx=0
+          if (!i_idx++) {
             printf "支出"
           }
-          for (q in social_bounus[day_base][day_sal][day_settlement][employee]) {
-            print social_bounus[day_base][day_sal][day_settlement][employee][q]
+          for (remarks in social_bounus[day_base][day_sal][day_settlement][employee]) {
+            print social_bounus[day_base][day_sal][day_settlement][employee][remarks]
           }
         }
       }
     }
   }
+
+}
+
+END {
+  # BOM
+  printf "\xEF\xBB\xBF"
+
+  print_csv_header()
+  print_csv_date()
 }
 
 function set_bounus(    insmap_bonus) {
@@ -194,7 +199,9 @@ function calc_bounus(value) {
 }
 
 function set_social_bounus(remarks, value, account    , pay_date) {
+  cmn_debug_log("set_social_bounus: " remarks ", " value ", " account)
   if (value) {
+    cmn_debug_log("set_social_bounus if: " remarks ", " value ", " account)
     entry_date = cmn_bounus_entry_strdate(remarks)
     pay_date = cmn_bounus_insura_settle_date()
     social_bounus[cmn_bounus_entry_strdate()][entry_date][pay_date][$col_to_idx["従業員番号"]][remarks]=",," entry_date "," pay_date ",,社会保険・労働保険," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
@@ -247,18 +254,25 @@ function use_lib_si_bounus(insmap_bonus,    start_date, end_date, age) {
     for (end_date in lib_si_bounus[start_date]) {
       cmn_debug_log("use_lib_si_bounus: start_date = " start_date ", end_date = " end_date ", pay_month = " pay_month)
       if (pay_month >= start_date && pay_month < end_date) {
-        insmap_bonus["健康保険料（従業員）"]["預り金（社会保険）"]             = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "employee")
+        insmap_bonus["健康保険料（従業員）"]["預り金（社会保険）"] = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "employee")
         insmap_bonus["健康保険料（会社）"]["法定福利費"]           = calc_health_insurance(lib_si_bounus[start_date][end_date], age, "owner")
         if (age > 39) {
-          insmap_bonus["介護保険料（従業員）"]["預り金（社会保険）"]           = calc_long_term_care(lib_si_bounus[start_date][end_date], age)
-          insmap_bonus["介護保険料（会社）"]["法定福利費"]         = insmap_bonus["介護保険料（従業員）"]["預り金（社会保険）"]
+          insmap_bonus["介護保険料（従業員）"]["預り金（社会保険）"] = calc_long_term_care(lib_si_bounus[start_date][end_date], age)
+          insmap_bonus["介護保険料（会社）"]["法定福利費"]           = insmap_bonus["介護保険料（従業員）"]["預り金（社会保険）"]
         }
-        insmap_bonus["厚生年金保険料（従業員）"]["預り金（社会保険）"]         = calc_welfare_pension(lib_si_bounus[start_date][end_date], "employee")
+        insmap_bonus["厚生年金保険料（従業員）"]["預り金（社会保険）"] = calc_welfare_pension(lib_si_bounus[start_date][end_date], "employee")
         insmap_bonus["厚生年金保険料（会社）"]["法定福利費"]       = calc_welfare_pension(lib_si_bounus[start_date][end_date], "owner")
-        insmap_bonus["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(lib_si_bounus[start_date][end_date])
+        insmap_bonus["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(lib_si_child_bounus[start_date][end_date])
       }
     }
   }
+
+  for (ibb in insmap_bonus) {
+    for (ibbb in insmap_bonus[ibb]) {
+      cmn_debug_log("use_lib_si_bounus: " ibb ", " ibbb ", " insmap_bonus[ibb][ibbb])
+    }
+  }
+
 }
 
 function calc_welfare_pension(lib_si_bounus, stat,    i) {
@@ -271,10 +285,10 @@ function calc_welfare_pension(lib_si_bounus, stat,    i) {
   return mount
 }
 
-function calc_child_care(lib_si_bounus,    i) {
+function calc_child_care(lib_si_child_bounus,    i) {
   if ($col_to_idx["賞与"] > MAX_MONTH_BOUNUS_OR_CHILD_MOUNT) {
     $col_to_idx["賞与"] = MAX_MONTH_BOUNUS_OR_CHILD_MOUNT
   }
-  i = (lib_si_child_bounus[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * calc_bounus($col_to_idx["賞与"])
+  i = (lib_si_child_bounus[CHILD_CARE_PERCENTAGE] / 100) * calc_bounus($col_to_idx["賞与"])
   return int(cmn_bigdecimal(i))
 }
