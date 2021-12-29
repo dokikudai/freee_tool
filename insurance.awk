@@ -191,18 +191,35 @@ function set_social(remarks, value, account    , pay_date) {
   }
 }
 
-# 社会保険料（介護保険なし）
+# 社会保険料（介護保険なし）従業員
 function get_insur(lib_si, age, stat) {
-  mount = cmn_roundoff(get_age_val(lib_si, age) - get_kaigo_ro(lib_si, age), stat)
+  mount = cmn_roundoff(get_age_val_half(lib_si, age) - get_kaigo_ro(lib_si, age), stat)
   cmn_insra_chk_health(stat, mount)
   return mount
 }
-function get_age_val(lib_si, age) {
+function get_age_val_half(lib_si, age) {
   if (age > 39) {
     return cmn_get_val(lib_si, HEALTH_INSURANCE_HALF_ge40)
   } else {
     return cmn_get_val(lib_si, HEALTH_INSURANCE_HALF_lt40)
   }
+}
+# 社会保険料（介護保険なし）会社
+function get_insur_campany(lib_si, age, stat) {
+  mount = int(get_age_val_all(lib_si, age)) - get_insur(lib_si, age, stat)
+  return mount
+}
+function get_age_val_all(lib_si, age) {
+  if (age > 39) {
+    return cmn_get_val(lib_si, HEALTH_INSURANCE_ALL_ge40)
+  } else {
+    return cmn_get_val(lib_si, HEALTH_INSURANCE_ALL_lt40)
+  }
+}
+# 社会保険料（介護保険あり）会社
+function get_insur_campany_plus_kaigo(lib_si, age, stat) {
+  mount = int(get_age_val_all(lib_si, age))
+  return mount
 }
 
 function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
@@ -212,7 +229,7 @@ function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
         age = cmn_age()
         cmn_debug_log("entry_date, age : " entry_date ", " age)
         insmap["健康保険料（従業員）"]["預り金（社会保険）"]       = get_insur(lib_si[start_date][end_date], age, "employee")
-        insmap["健康保険料（会社）"]["法定福利費"]     = get_insur(lib_si[start_date][end_date], age, "owner")
+        insmap["健康保険料（会社）"]["法定福利費"]     = get_insur_campany(lib_si[start_date][end_date], age, "owner")
         insmap["厚生年金保険料（従業員）"]["預り金（社会保険）"]   = get_plan3(lib_si[start_date][end_date], age, "employee")
         insmap["厚生年金保険料（会社）"]["法定福利費"] = get_plan3(lib_si[start_date][end_date], age, "owner")
         insmap["子ども・子育て拠出金（会社）"]["法定福利費"] = calc_child_care(start_date, end_date)
@@ -220,6 +237,8 @@ function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
           cmn_debug_log("介護保険料条件内age : " age " " cmn_emp_name())
           insmap["介護保険料（従業員）"]["預り金（社会保険）"]     = get_kaigo_ro(lib_si[start_date][end_date], age)
           insmap["介護保険料（会社）"]["法定福利費"]   = insmap["介護保険料（従業員）"]["預り金（社会保険）"]
+          # 上書き（要リファクタリング）
+          insmap["健康保険料（会社）"]["法定福利費"] = get_insur_campany_plus_kaigo(lib_si[start_date][end_date], age, "owner") - get_insur(lib_si[start_date][end_date], age, "employee") - get_kaigo_ro(lib_si[start_date][end_date], age)*2
         }
       }
     }
@@ -248,8 +267,8 @@ function get_plan3(lib_si, age, stat) {
 }
 
 function calc_child_care(start_date, end_date,    i) {
-  cmn_debug_log("#calc_child_care,  $col_to_idx[\"健康保険標準報酬月額\"]=" $col_to_idx["健康保険標準報酬月額"])
-  i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $col_to_idx["健康保険標準報酬月額"]
+  cmn_debug_log("#calc_child_care,  $col_to_idx[\"厚生年金保険標準報酬月額\"]=" $col_to_idx["厚生年金保険標準報酬月額"])
+  i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $col_to_idx["厚生年金保険標準報酬月額"]
   cmn_debug_log("#calc_child_care, lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE]=" lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE])
   return int(cmn_bigdecimal(i))
 }

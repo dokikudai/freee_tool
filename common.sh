@@ -9,9 +9,9 @@ readonly output_import_csv_dir="output_import_csv"
 function encode_payroll() {
   mime_encoding=$(file --mime-encoding $1 | awk '{print $2}')
   if [[ "${mime_encoding}" = 'unknown-8bit' ]]; then
-    iconv -f sjis -t utf-8 $1
+    nkf -w -Lu $1
   elif [[ "${mime_encoding}" = 'utf-8' ]]; then
-    cat $1
+    nkf -Lu $1
   else
     echo "no encoding"
     exit 1
