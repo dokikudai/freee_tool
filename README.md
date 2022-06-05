@@ -3,12 +3,14 @@
 - ボーナスの社会保険料
 
 ```
+export LANG=ja_JP.utf8
 ./insurance_bounus.sh --from 202006 --to 202105 --debug
 ```
 
 - 給料の社会保険料
 
 ```
+export LANG=ja_JP.utf8
 ./insurance.sh --from 202006 --to 202105 --debug
 ```
 
