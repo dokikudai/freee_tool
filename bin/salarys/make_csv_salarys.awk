@@ -271,10 +271,10 @@ function output_csv_owner_7(hp_idx, j1, j2, j3    , output_csv_cols) {
 function get_labor_item(date    , tmp) {
   split(date, tmp, "/")
   if (tmp[2] ~ /0[1-5]/ || tmp[2] == "12") {
-    return "12～05月"
+    return "所得税（12～05月）"
   }
   if (tmp[2] ~ /0[6-9]/ || tmp[2] ~ /1[01]/) {
-    return "06～11月"
+    return "所得税（06～11月）"
   }
   print "ERROR: #get_labor_item" > "/dev/stderr"
   exit 1
