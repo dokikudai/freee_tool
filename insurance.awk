@@ -39,6 +39,9 @@ FILENAME == "social_insurances/r2ippan9.csv.tmp" {
 FILENAME == "social_insurances/r3ippan3.csv.tmp" {
   set_lib_si(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r4ippan3.csv.tmp" {
+  set_lib_si(mktime("2022 03 01 00 00 00"), mktime("2023 03 01 00 00 00"))
+}
 function set_lib_si(start_date, end_date) {
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_ALL_lt40]  =$3
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_HALF_lt40] =$4
