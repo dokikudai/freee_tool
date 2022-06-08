@@ -86,6 +86,9 @@ function v(value) {
 ARGIND == ARGC - 1 && !iii++ {
   # 賃金台帳.csvの1行目を読み込んだとき
   # print $0  > "/dev/stderr"
+
+  # BOMの削除（これが悪さをして従業員名の配列が利用できなくなる） 
+  sub("\xef\xbb\xbf", "", $0)
   create_conv_lib($0)
 }
 
