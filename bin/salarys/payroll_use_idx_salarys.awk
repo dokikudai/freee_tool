@@ -36,4 +36,7 @@ function cmn_lib_use_idx() {
   set_use_idx(col_to_idx["調整(精算待ち)"])
   set_use_idx(col_to_idx["天引き"])
   set_use_idx(col_to_idx["年末調整精算"])
+  set_use_idx(col_to_idx["法定内残業手当"])
+  set_use_idx(col_to_idx["時間外労働手当"])
+  set_use_idx(col_to_idx["社宅賃料（天引き）"])
 }

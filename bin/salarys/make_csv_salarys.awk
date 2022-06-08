@@ -55,6 +55,8 @@ function output_csv_owner(journals_j1, hp_idx, j1    , j2, j3) {
     for (j3 in journals_j1[j2]) {
       output_csv_owner_1_base_sal(hp_idx, j1, j2, j3)
       output_csv_owner_1_bounus(hp_idx, j1, j2, j3)
+      output_csv_owner_13(hp_idx, j1, j2, j3)
+      output_csv_owner_14(hp_idx, j1, j2, j3)
       output_csv_owner_2(hp_idx, j1, j2, j3)
       output_csv_owner_3(hp_idx, j1, j2, j3)
       output_csv_owner_4(hp_idx, j1, j2, j3)
@@ -66,6 +68,7 @@ function output_csv_owner(journals_j1, hp_idx, j1    , j2, j3) {
       output_csv_owner_10(hp_idx, j1, j2, j3)
       output_csv_owner_11(hp_idx, j1, j2, j3)
       output_csv_owner_12(hp_idx, j1, j2, j3)
+      output_csv_owner_15(hp_idx, j1, j2, j3)
     }
   }
 }
@@ -126,6 +129,48 @@ function get_bounus_sal_account(emp_no) {
       return "賞与（役員）"
   }
   return "賞与"
+}
+
+function output_csv_owner_13(hp_idx, j1, j2, j3    , output_csv_cols) {
+  $0 = journals[hp_idx][j1][j2][j3]
+
+  if (is_null(hp_idx, "法定内残業手当")) {
+    return
+  }
+
+  output_csv_cols[_o("収支区分")]  = ""
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
+  output_csv_cols[_o("取引先")]    = "従業員"
+  output_csv_cols[_o("勘定科目")]  = get_sal_account($col_to_idx[hp_idx]["従業員番号"])
+  output_csv_cols[_o("税区分")]    = "対外仕入"
+  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["法定内残業手当"]
+  output_csv_cols[_o("備考")]      = ""
+  output_csv_cols[_o("品目")]      = "法定内残業手当"
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx[hp_idx]["支給月日"], j3)
+  print_output_csv_cols(output_csv_cols)
+}
+
+function output_csv_owner_14(hp_idx, j1, j2, j3    , output_csv_cols) {
+  $0 = journals[hp_idx][j1][j2][j3]
+
+  if (is_null(hp_idx, "時間外労働手当")) {
+    return
+  }
+
+  output_csv_cols[_o("収支区分")]  = ""
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
+  output_csv_cols[_o("取引先")]    = "従業員"
+  output_csv_cols[_o("勘定科目")]  = get_sal_account($col_to_idx[hp_idx]["従業員番号"])
+  output_csv_cols[_o("税区分")]    = "対外仕入"
+  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["時間外労働手当"]
+  output_csv_cols[_o("備考")]      = ""
+  output_csv_cols[_o("品目")]      = "時間外労働手当"
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx[hp_idx]["支給月日"], j3)
+  print_output_csv_cols(output_csv_cols)
 }
 
 function output_csv_owner_2(hp_idx, j1, j2, j3    , output_csv_cols) {
@@ -418,4 +463,25 @@ function is_null(hp_idx, col) {
     return 1
   }
   return 0
+}
+
+function output_csv_owner_15(hp_idx, j1, j2, j3    , output_csv_cols) {
+  $0 = journals[hp_idx][j1][j2][j3]
+
+  if (is_null(hp_idx, "社宅賃料（天引き）")) {
+    return
+  }
+
+  output_csv_cols[_o("収支区分")]  = ""
+  output_csv_cols[_o("発生日")]    = j1
+  output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
+  output_csv_cols[_o("取引先")]    = ""
+  output_csv_cols[_o("勘定科目")]  = "預り金（天引）"
+  output_csv_cols[_o("税区分")]    = "対象外"
+  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["社宅賃料（天引き）"] * -1
+  output_csv_cols[_o("備考")]      = ""
+  output_csv_cols[_o("品目")]      = ""
+  output_csv_cols[_o("部門")]      = get_depertment(j2)
+  output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx[hp_idx]["支給月日"], j3)
+  print_output_csv_cols(output_csv_cols)
 }
