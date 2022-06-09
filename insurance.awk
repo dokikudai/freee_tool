@@ -74,6 +74,9 @@ FILENAME == "social_insurances/r2ippan9.csv" && $1 ~ /この子ども・子育�
 FILENAME == "social_insurances/r3ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   set_lib_si_child(mktime("2021 03 01 00 00 00"), mktime("2022 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r4ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  set_lib_si_child(mktime("2022 03 01 00 00 00"), mktime("2023 03 01 00 00 00"))
+}
 function set_lib_si_child(start_date, end_date) {
   cmn_debug_log("#set_lib_si_child, v($1)=" v($1))
   lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] = v($1)
@@ -87,8 +90,10 @@ ARGIND == ARGC - 1 && !iii++ {
   # 賃金台帳.csvの1行目を読み込んだとき
   # print $0  > "/dev/stderr"
 
-  # BOMの削除（これが悪さをして従業員名の配列が利用できなくなる） 
+  # BOMの削除（従業員名の配列が利用できなくなるのを防ぐ）
   sub("\xef\xbb\xbf", "", $0)
+  # \r削除（子ども・子育て拠出金（会社）の計算ができなくなるのを防ぐ）
+  sub("\r", "", $0)
   create_conv_lib($0)
 }
 
@@ -240,7 +245,7 @@ function use_lib_si(entry_date, insmap,    age, start_date, end_date) {
     for (end_date in lib_si[start_date]) {
       if (entry_date >= start_date && entry_date < end_date) {
         age = cmn_age()
-        cmn_debug_log("entry_date, age : " entry_date ", " age)
+        cmn_debug_log("entry_date, age : " strftime("%Y/%m/%d %H:%M:%S",entry_date) ", " age)
         insmap["健康保険料（従業員）"]["預り金（社会保険）"]       = get_insur(lib_si[start_date][end_date], age, "employee")
         insmap["健康保険料（会社）"]["法定福利費"]     = get_insur_campany(lib_si[start_date][end_date], age, "owner")
         insmap["厚生年金保険料（従業員）"]["預り金（社会保険）"]   = get_plan3(lib_si[start_date][end_date], age, "employee")
@@ -280,6 +285,7 @@ function get_plan3(lib_si, age, stat) {
 }
 
 function calc_child_care(start_date, end_date,    i) {
+  cmn_debug_log("#calc_child_care: " strftime("%Y/%m/%d %H:%M:%S",start_date) ", " strftime("%Y/%m/%d %H:%M:%S",end_date)) 
   cmn_debug_log("#calc_child_care,  $col_to_idx[\"厚生年金保険標準報酬月額\"]=" $col_to_idx["厚生年金保険標準報酬月額"])
   i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $col_to_idx["厚生年金保険標準報酬月額"]
   cmn_debug_log("#calc_child_care, lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE]=" lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE])
