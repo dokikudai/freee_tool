@@ -230,7 +230,7 @@ function output_csv_owner_4(hp_idx, j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["介護保険料"] * -1
   output_csv_cols[_o("備考")]      = ""
-  output_csv_cols[_o("品目")]      = "介護保険（従業員）"
+  output_csv_cols[_o("品目")]      = "介護保険料（従業員）"
   output_csv_cols[_o("部門")]      = get_depertment(j2)
   output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags($col_to_idx[hp_idx]["支給月日"], j3)
   print_output_csv_cols(output_csv_cols)
