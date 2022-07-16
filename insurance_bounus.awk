@@ -113,6 +113,10 @@ function set_lib_si_child_bounus(start_date, end_date) {
 ARGIND == ARGC - 1 && !iii++ {
   # 賃金台帳.csvの1行目を読み込んだとき
   # print $0  > "/dev/stderr"
+  # BOMの削除（従業員名の配列が利用できなくなるのを防ぐ）
+  sub("\xef\xbb\xbf", "", $0)
+  # \r削除（子ども・子育て拠出金（会社）の計算ができなくなるのを防ぐ）
+  sub("\r", "", $0)
   create_conv_lib($0)
 }
 
