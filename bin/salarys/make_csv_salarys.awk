@@ -66,6 +66,8 @@ function output_csv_owner(journals_j1, hp_idx, j1    , j2, j3) {
       output_csv_owner_8(hp_idx, j1, j2, j3)
       output_csv_owner_9(hp_idx, j1, j2, j3)
       output_csv_owner_10(hp_idx, j1, j2, j3)
+
+      # 収支区分出力
       output_csv_owner_11(hp_idx, j1, j2, j3)
       output_csv_owner_12(hp_idx, j1, j2, j3)
       output_csv_owner_15(hp_idx, j1, j2, j3)
@@ -406,13 +408,13 @@ function output_csv_owner_11(hp_idx, j1, j2, j3    , output_csv_cols) {
     return
   }
 
-  output_csv_cols[_o("収支区分")]  = ""
+  output_csv_cols[_o("収支区分")]  = "収入"
   output_csv_cols[_o("発生日")]    = j1
   output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
   output_csv_cols[_o("取引先")]    = ""
-  output_csv_cols[_o("勘定科目")]  = "預り金（天引）"
+  output_csv_cols[_o("勘定科目")]  = "未収入金（天引）"
   output_csv_cols[_o("税区分")]    = "対象外"
-  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["天引き"] * -1
+  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["天引き"]
   output_csv_cols[_o("備考")]      = ""
   output_csv_cols[_o("品目")]      = ""
   output_csv_cols[_o("部門")]      = get_depertment(j2)
@@ -435,7 +437,7 @@ function output_csv_owner_12(hp_idx, j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["年末調整精算"] * -1
   output_csv_cols[_o("備考")]      = ""
-  output_csv_cols[_o("品目")]      = "06～11月"
+  output_csv_cols[_o("品目")]      = "所得税（06～11月）"
   output_csv_cols[_o("部門")]      = get_depertment(j2)
   output_csv_cols[_o("メモタグ（複数指定可、カンマ区切り）")] = tags_12($col_to_idx[hp_idx]["支給月日"], j3)
   print_output_csv_cols(output_csv_cols)
@@ -472,13 +474,13 @@ function output_csv_owner_15(hp_idx, j1, j2, j3    , output_csv_cols) {
     return
   }
 
-  output_csv_cols[_o("収支区分")]  = ""
+  output_csv_cols[_o("収支区分")]  = "収入"
   output_csv_cols[_o("発生日")]    = j1
   output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
   output_csv_cols[_o("取引先")]    = ""
-  output_csv_cols[_o("勘定科目")]  = "預り金（天引）"
+  output_csv_cols[_o("勘定科目")]  = "未収入金（天引）"
   output_csv_cols[_o("税区分")]    = "対象外"
-  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["社宅賃料（天引き）"] * -1
+  output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["社宅賃料（天引き）"]
   output_csv_cols[_o("備考")]      = ""
   output_csv_cols[_o("品目")]      = ""
   output_csv_cols[_o("部門")]      = get_depertment(j2)
