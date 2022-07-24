@@ -65,7 +65,7 @@ function output_csv_owner_1(j1, j2, j3    , _amount, output_csv_cols) {
   output_csv_cols[_o("決済期日")]  = pay_date(j1)
   output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
   output_csv_cols[_o("勘定科目")]  = "法定福利費（労働保険）" odd_or_even(j1)
-  output_csv_cols[_o("税区分")]    = "対象外"
+  output_csv_cols[_o("税区分")]    = "非課仕入"
   output_csv_cols[_o("金額")]      = round_half_up(_amount[1] * 9 / 1000)
   output_csv_cols[_o("備考")]      = remarks(j1, j3)
   output_csv_cols[_o("品目")]      = "労働保険（会社）"
@@ -101,7 +101,7 @@ function output_csv_owner_3(j1, j2, j3    , _amount, output_csv_cols) {
   output_csv_cols[_o("決済期日")]  = pay_date(j1)
   output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
   output_csv_cols[_o("勘定科目")]  = "法定福利費（労働保険）" odd_or_even(j1)
-  output_csv_cols[_o("税区分")]    = "対象外"
+  output_csv_cols[_o("税区分")]    = "非課仕入"
   output_csv_cols[_o("金額")]      = int(_amount[1] * 0.02 / 1000)
   output_csv_cols[_o("備考")]      = remarks(j1, j3)
   output_csv_cols[_o("品目")]      = "一般拠出（会社）"
