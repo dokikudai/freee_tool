@@ -366,7 +366,7 @@ function output_csv_owner_9(hp_idx, j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("発生日")]    = j1
   output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
   output_csv_cols[_o("取引先")]    = ""
-  output_csv_cols[_o("勘定科目")]  = "給料調整（預り金）"
+  output_csv_cols[_o("勘定科目")]  = "預り金（給与調整）"
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["調整(精算済み)"] * -1
   output_csv_cols[_o("備考")]      = ""
@@ -387,7 +387,7 @@ function output_csv_owner_10(hp_idx, j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("発生日")]    = j1
   output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
   output_csv_cols[_o("取引先")]    = ""
-  output_csv_cols[_o("勘定科目")]  = "給料調整（預り金）"
+  output_csv_cols[_o("勘定科目")]  = "預り金（給与調整）"
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["調整(精算待ち)"] * -1
   output_csv_cols[_o("備考")]      = ""
