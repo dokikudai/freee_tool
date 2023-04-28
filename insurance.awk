@@ -42,6 +42,9 @@ FILENAME == "social_insurances/r3ippan3.csv.tmp" {
 FILENAME == "social_insurances/r4ippan3.csv.tmp" {
   set_lib_si(mktime("2022 03 01 00 00 00"), mktime("2023 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r5ippan3.csv.tmp" {
+  set_lib_si(mktime("2023 03 01 00 00 00"), mktime("2024 03 01 00 00 00"))
+}
 function set_lib_si(start_date, end_date) {
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_ALL_lt40]  =$3
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_HALF_lt40] =$4
@@ -76,6 +79,9 @@ FILENAME == "social_insurances/r3ippan3.csv" && $1 ~ /この子ども・子育�
 }
 FILENAME == "social_insurances/r4ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   set_lib_si_child(mktime("2022 03 01 00 00 00"), mktime("2023 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r5ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  set_lib_si_child(mktime("2023 03 01 00 00 00"), mktime("2024 03 01 00 00 00"))
 }
 function set_lib_si_child(start_date, end_date) {
   cmn_debug_log("#set_lib_si_child, v($1)=" v($1))
@@ -285,7 +291,7 @@ function get_plan3(lib_si, age, stat) {
 }
 
 function calc_child_care(start_date, end_date,    i) {
-  cmn_debug_log("#calc_child_care: " strftime("%Y/%m/%d %H:%M:%S",start_date) ", " strftime("%Y/%m/%d %H:%M:%S",end_date)) 
+  cmn_debug_log("#calc_child_care: " strftime("%Y/%m/%d %H:%M:%S",start_date) ", " strftime("%Y/%m/%d %H:%M:%S",end_date))
   cmn_debug_log("#calc_child_care,  $col_to_idx[\"厚生年金保険標準報酬月額\"]=" $col_to_idx["厚生年金保険標準報酬月額"])
   i = (lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE] / 100) * $col_to_idx["厚生年金保険標準報酬月額"]
   cmn_debug_log("#calc_child_care, lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE]=" lib_si_child[start_date][end_date][CHILD_CARE_PERCENTAGE])
