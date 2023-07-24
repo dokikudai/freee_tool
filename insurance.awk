@@ -208,10 +208,12 @@ function set_social(remarks, value, account    , pay_date, torihiki) {
     # 要リファクタリング
     if (account == "預り金（社会保険）") {
       torihiki = "従業員"
+      taxkbn = "対象外"
     } else {
       torihiki = "社会保険・労働保険"
+      taxkbn = "非課仕入"
     }
-    social[cmn_entry_strdate()][entry_date][pay_date][$col_to_idx["従業員番号"]][remarks]=",," entry_date "," pay_date ",," torihiki "," account ",対象外," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
+    social[cmn_entry_strdate()][entry_date][pay_date][$col_to_idx["従業員番号"]][remarks]=",," entry_date "," pay_date ",," torihiki "," account "," taxkbn "," value ",,," remarks "," remarks "," cmn_emp_name() ",\"import_社会保険料,社会保険料\",,,,,,"
   }
 }
 
