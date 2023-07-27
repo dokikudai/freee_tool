@@ -66,7 +66,7 @@ function output_csv_owner_1(j1, j2, j3    , _amount, output_csv_cols) {
   output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
   output_csv_cols[_o("勘定科目")]  = "法定福利費（労働保険）" odd_or_even(j1)
   output_csv_cols[_o("税区分")]    = "非課仕入"
-  output_csv_cols[_o("金額")]      = round_half_up(_amount[1] * 9 / 1000)
+  output_csv_cols[_o("金額")]      = round_half_up(_amount[1] * get_workrate(j1) / 1000)
   output_csv_cols[_o("備考")]      = remarks(j1, j3)
   output_csv_cols[_o("品目")]      = "労働保険（会社）"
   output_csv_cols[_o("部門")]      = get_depertment(j2)
@@ -84,7 +84,7 @@ function output_csv_owner_2(j1, j2, j3    , _amount, output_csv_cols) {
   output_csv_cols[_o("取引先")]    = "社会保険・労働保険"
   output_csv_cols[_o("勘定科目")]  = "未払費用（労働保険）" odd_or_even(j1)
   output_csv_cols[_o("税区分")]    = "対象外"
-  output_csv_cols[_o("金額")]      = -1 * round_half_up(_amount[1] * 9 / 1000)
+  output_csv_cols[_o("金額")]      = -1 * round_half_up(_amount[1] * get_workrate(j1) / 1000)
   output_csv_cols[_o("備考")]      = remarks(j1, j3)
   output_csv_cols[_o("品目")]      = "労働保険（会社）"
   output_csv_cols[_o("部門")]      = get_depertment(j2)
@@ -138,4 +138,30 @@ function remarks(j1, j3) {
 
 function tags(j1, j3) {
   return DQ "import_労働保険,労働保険," substr(j1,6,5) "締め" j3 DQ
+}
+
+function get_workrate(j1) {
+  workrate_2022_firstharf_start = mktime("2022 04 01 00 00 00")
+  workrate_2022_secondharf_start = mktime("2022 10 01 00 00 00")
+  workrate_2023_firstharf_start = mktime("2023 04 01 00 00 00")
+  gsub("/", " ", j1)
+
+  # 2021年度以前
+  if (mktime(j1 " 00 00 00") < workrate_2022_firstharf_start) {
+    return 9
+  }
+  # 2022年度前期
+  if (mktime(j1 " 00 00 00") >= workrate_2022_firstharf_start && mktime(j1 " 00 00 00") < workrate_2022_secondharf_start) {
+    return 9.5
+  }
+  # 2022年度後期
+  if (mktime(j1 " 00 00 00") >= workrate_2022_secondharf_start && mktime(j1 " 00 00 00") < workrate_2023_firstharf_start) {
+    return 11.5
+  }
+  # 2023年度以降
+  if (mktime(j1 " 00 00 00") >= workrate_2023_firstharf_start) {
+    return 12.5
+  }
+  print "想定外error"
+  exit 0
 }
