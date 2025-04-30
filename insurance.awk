@@ -48,6 +48,9 @@ FILENAME == "social_insurances/r5ippan3.csv.tmp" {
 FILENAME == "social_insurances/r6ippan3.csv.tmp" {
   set_lib_si(mktime("2024 03 01 00 00 00"), mktime("2025 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r7ippan3.csv.tmp" {
+  set_lib_si(mktime("2025 03 01 00 00 00"), mktime("2026 03 01 00 00 00"))
+}
 function set_lib_si(start_date, end_date) {
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_ALL_lt40]  =$3
   lib_si[start_date][end_date][$1][$2][HEALTH_INSURANCE_HALF_lt40] =$4
@@ -88,6 +91,9 @@ FILENAME == "social_insurances/r5ippan3.csv" && $1 ~ /この子ども・子育�
 }
 FILENAME == "social_insurances/r6ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   set_lib_si_child(mktime("2024 03 01 00 00 00"), mktime("2025 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r7ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  set_lib_si_child(mktime("2025 03 01 00 00 00"), mktime("2026 03 01 00 00 00"))
 }
 function set_lib_si_child(start_date, end_date) {
   cmn_debug_log("#set_lib_si_child, v($1)=" v($1))
