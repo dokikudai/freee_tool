@@ -63,6 +63,9 @@ FILENAME == "social_insurances/r5ippan3.csv" && FNR == 11 {
 FILENAME == "social_insurances/r6ippan3.csv" && FNR == 11 {
   set_lib_si_bounus(mktime("2024 03 01 00 00 00"), mktime("2025 03 01 00 00 00"))
 }
+FILENAME == "social_insurances/r7ippan3.csv" && FNR == 11 {
+  set_lib_si_bounus(mktime("2025 03 01 00 00 00"), mktime("2026 03 01 00 00 00"))
+}
 function set_lib_si_bounus(start_date, end_date,    i) {
   cmn_debug_log("$0 = " $0)
   # r2ippan4.csv から読み込んだ値を代入
@@ -115,6 +118,9 @@ FILENAME == "social_insurances/r5ippan3.csv" && $1 ~ /この子ども・子育�
 }
 FILENAME == "social_insurances/r6ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
   set_lib_si_child_bounus(mktime("2024 03 01 00 00 00"), mktime("2025 03 01 00 00 00"))
+}
+FILENAME == "social_insurances/r7ippan3.csv" && $1 ~ /この子ども・子育て拠出金の額は、/ {
+  set_lib_si_child_bounus(mktime("2025 03 01 00 00 00"), mktime("2026 03 01 00 00 00"))
 }
 
 function set_lib_si_child_bounus(start_date, end_date) {
