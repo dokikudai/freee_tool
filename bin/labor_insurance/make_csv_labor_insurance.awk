@@ -144,23 +144,34 @@ function get_workrate(j1) {
   workrate_2022_firstharf_start = mktime("2022 04 01 00 00 00")
   workrate_2022_secondharf_start = mktime("2022 10 01 00 00 00")
   workrate_2023_firstharf_start = mktime("2023 04 01 00 00 00")
+  workrate_2024_firstharf_start = mktime("2024 04 01 00 00 00")
+  workrate_2025_firstharf_start = mktime("2025 04 01 00 00 00")
+  workrate_2026_firstharf_start = mktime("2026 04 01 00 00 00")
   gsub("/", " ", j1)
 
-  # 2021年度以前
+  # 2021年度以前(令和3)事業者負担分雇用保険 6 + 事業者負担労災保険 3
   if (mktime(j1 " 00 00 00") < workrate_2022_firstharf_start) {
     return 9
   }
-  # 2022年度前期
+  # 2022年度前期(令和4)事業者負担分雇用保険 6.5 + 事業者負担労災保険 3
   if (mktime(j1 " 00 00 00") >= workrate_2022_firstharf_start && mktime(j1 " 00 00 00") < workrate_2022_secondharf_start) {
     return 9.5
   }
-  # 2022年度後期
+  # 2022年度後期(令和4)事業者負担分雇用保険 8.5 + 事業者負担労災保険 3
   if (mktime(j1 " 00 00 00") >= workrate_2022_secondharf_start && mktime(j1 " 00 00 00") < workrate_2023_firstharf_start) {
     return 11.5
   }
-  # 2023年度以降
-  if (mktime(j1 " 00 00 00") >= workrate_2023_firstharf_start) {
+  # 2023年度以降(令和5)事業者負担分雇用保険 9.5 + 事業者負担労災保険 3
+  if (mktime(j1 " 00 00 00") >= workrate_2023_firstharf_start && mktime(j1 " 00 00 00") < workrate_2024_firstharf_start) {
     return 12.5
+  }
+  # 2024年度以降(令和6)事業者負担分雇用保険 9.5 + 事業者負担労災保険 3
+  if (mktime(j1 " 00 00 00") >= workrate_2024_firstharf_start && mktime(j1 " 00 00 00") < workrate_2025_firstharf_start) {
+    return 12.5
+  }
+  # 2025年度以降(令和7)事業者負担分雇用保険 9 + 事業者負担労災保険 3
+  if (mktime(j1 " 00 00 00") >= workrate_2025_firstharf_start && mktime(j1 " 00 00 00") < workrate_202_firstharf_start) {
+    return 12
   }
   print "想定外error"
   exit 0

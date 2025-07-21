@@ -314,7 +314,7 @@ function output_csv_owner_6(hp_idx, j1, j2, j3    , output_csv_cols) {
   output_csv_cols[_o("発生日")]    = j1
   output_csv_cols[_o("決済期日")]  = $col_to_idx[hp_idx]["支給月日"]
   output_csv_cols[_o("取引先")]    = ""
-  output_csv_cols[_o("勘定科目")]  = "未払費用（労働保険）" odd_or_even(j1)
+  output_csv_cols[_o("勘定科目")]  = "預り金（雇用保険）" odd_or_even(j1)
   output_csv_cols[_o("税区分")]    = "対象外"
   output_csv_cols[_o("金額")]      = $col_to_idx[hp_idx]["雇用保険料"] * -1
   output_csv_cols[_o("備考")]      = ""
