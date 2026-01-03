@@ -170,7 +170,11 @@ function get_workrate(j1) {
     return 12.5
   }
   # 2025年度以降(令和7)事業者負担分雇用保険 9 + 事業者負担労災保険 3
-  if (mktime(j1 " 00 00 00") >= workrate_2025_firstharf_start && mktime(j1 " 00 00 00") < workrate_202_firstharf_start) {
+  if (mktime(j1 " 00 00 00") >= workrate_2025_firstharf_start && mktime(j1 " 00 00 00") < workrate_2026_firstharf_start) {
+    return 12
+  }
+  # 2026年度以降(令和8)事業者負担分雇用保険 9 + 事業者負担労災保険 3
+  if (mktime(j1 " 00 00 00") >= workrate_2026_firstharf_start) {
     return 12
   }
   print "想定外error"
